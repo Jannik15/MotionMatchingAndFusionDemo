@@ -14,6 +14,8 @@ public class MotionMatching : MonoBehaviour
 
     // --- Public 
     public bool _preProcess;
+    public int pointsPerTrajectory = 4;
+    public int framesBetweenTrajectoryPoints = 10;
 
     void Awake() // Load animation data
     {
@@ -34,7 +36,7 @@ public class MotionMatching : MonoBehaviour
 
             preProcessing.Preprocess(featureVectorForAllIDs);
         }
-        preProcessing.LoadData();
+        preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
     }
 
     void Start()

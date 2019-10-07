@@ -9,9 +9,9 @@ public class PreProcessing
         csvHandler.WriteCSV(featureVector);
     }
 
-    public List<FeatureVector> LoadData()
+    public List<FeatureVector> LoadData(int pointsPerTrajectory, int framesBetweenTrajectoryPoints)
     {
-        csvHandler.ReadCSV();
+        csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints);
         List<FeatureVector> featureVector = new List<FeatureVector>();
         return featureVector;
     }

@@ -2,21 +2,25 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using UnityEngine;
 
 public class CSVHandler
 {
+
     private string csvPath = "Assets/Resources/CSV/AnimData.csv";
     private static string[] csvLabels =
     {
         // General info
-        "ClipName", "Frame",
+        "ClipName" /*[0]*/,         "Frame" /*[1]*/,
+
         // Pose data
-        "RootVel.x", "RootVel.z",
-        "LFootVel.x", "LFootVel.z",
-        "RFootVel.x", "RFootVel.z",
+        "RootVel.x" /*[2]*/,        "RootVel.z" /*[3]*/,
+        "LFootVel.x" /*[4]*/,       "LFootVel.z" /*[5]*/,
+        "RFootVel.x" /*[6]*/,       "RFootVel.z" /*[7]*/,
+
         // TrajectoryPoint data
-        "RootPos.x", "RootPos.z",
-        "Forward.x", "Forward.z"
+        "RootPos.x" /*[8]*/,        "RootPos.z" /*[9]*/,
+        "Forward.x" /*[10]*/,        "Forward.z"  /*[11]*/
     };
     public void WriteCSV(List<FeatureVector> dataToWrite)
     {
@@ -56,12 +60,14 @@ public class CSVHandler
             }
         }
     }
-    public void ReadCSV()
+    public List<FeatureVector> ReadCSV(int trajPointsLength, int trajStepSize)
     {
         StreamReader reader = new StreamReader(csvPath);
 
         bool endOfFile = false;
-        bool createHeaders = true;
+        bool ignoreHeaders = true;
+        List<FeatureVector> featuresFromCSV = new List<FeatureVector>();
+        int idIterator = 0;
 
         while (!endOfFile)
         {
@@ -72,6 +78,24 @@ public class CSVHandler
                 endOfFile = true;
                 break;
             }
+
+            string[] tempString = dataString.Split(',');
+            NumberFormatInfo format = CultureInfo.InvariantCulture.NumberFormat;
+
+            if (!ignoreHeaders)
+            {
+                string tempClipNameValue = "";
+                TrajectoryPoint[] trajPoints = new TrajectoryPoint[trajPointsLength];
+                //featuresFromCSV.Add(new FeatureVector(new MMPose(new Vector3(float.Parse(tempString[2], format),0.0f,float.Parse(tempString[3], format)),
+                //        new Vector3(float.Parse(tempString[4], format), 0.0f, float.Parse(tempString[5], format)), 
+                //        new Vector3(float.Parse(tempString[6], format), 0.0f, float.Parse(tempString[7], format))), 
+                //    new Trajectory(), 
+                //    idIterator, tempString[0], tempString[1]));
+                idIterator++;
+            }
+            else
+                ignoreHeaders = false;
         }
+        return featuresFromCSV;
     }
 }
