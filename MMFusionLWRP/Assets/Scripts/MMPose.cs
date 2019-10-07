@@ -1,18 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class MMPose : MonoBehaviour
+public class MMPose
 {
-    // Start is called before the first frame update
-    void Start()
+    private Vector3 rootVel, lFootVel, rFootVel;
+    public MMPose(Vector3 _rootVel, Vector3 _lFootVel, Vector3 _rFootVel)
     {
-        
+        rootVel = _rootVel;
+        lFootVel = _lFootVel;
+        rFootVel = _rFootVel;
     }
-
-    // Update is called once per frame
-    void Update()
+    public Vector3 GetRootVelocity()
     {
-        
+        return rootVel;
+    }
+    public Vector3 GetLefFootVelocity()
+    {
+        return lFootVel;
+    }
+    public Vector3 GetRightFootVelocity()
+    {
+        return rFootVel;
     }
 }

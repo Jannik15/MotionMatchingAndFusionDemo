@@ -4,15 +4,16 @@ using UnityEngine;
 
 public class CamLookAt : MonoBehaviour
 {
-    // Start is called before the first frame update
+    private Vector3 offset;
+    private Transform player;
+    public float lerpTime;
     void Start()
     {
-        
+        player = GameObject.FindGameObjectWithTag("Player").transform;
+        offset = transform.position - player.position;
     }
-
-    // Update is called once per frame
     void Update()
     {
-        
+        transform.position = Vector3.Lerp(transform.position, player.position + offset, lerpTime);
     }
 }

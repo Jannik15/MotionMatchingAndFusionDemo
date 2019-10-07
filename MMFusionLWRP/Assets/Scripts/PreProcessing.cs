@@ -1,18 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class PreProcessing : MonoBehaviour
+public class PreProcessing
 {
-    // Start is called before the first frame update
-    void Start()
+    private CSVHandler csvHandler;
+    public void Preprocess(List<FeatureVector> featureVector)
     {
-        
+        csvHandler.WriteCSV(featureVector);
     }
 
-    // Update is called once per frame
-    void Update()
+    public List<FeatureVector> LoadData()
     {
-        
+        csvHandler.ReadCSV();
+        List<FeatureVector> featureVector = new List<FeatureVector>();
+        return featureVector;
     }
 }
