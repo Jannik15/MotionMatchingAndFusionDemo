@@ -9,8 +9,8 @@ public class MotionMatching : MonoBehaviour
     private PreProcessing preProcessing;
 
     // --- Collections
+    private List<FeatureVector> featureVectors;
     public AnimationClip[] allClips;
-    private List<FeatureVector> featureVectorForAllIDs;
 
     // --- Public 
     public bool _preProcess;
@@ -21,22 +21,9 @@ public class MotionMatching : MonoBehaviour
     {
         if (_preProcess)
         {
-            // TODO: Put this in preprocessing, too much for MM script!
-            featureVectorForAllIDs = new List<FeatureVector>();
-            int i = 0;
-            foreach (var clip in allClips)
-            {
-                for (int j = 0; j < clip.length * clip.frameRate; j++)
-                {
-                    //featureVectorForAllIDs[i] = new FeatureVector(new MMPose(allClips[j].), );
-                    i++;
-                }
-
-            }
-
-            preProcessing.Preprocess(featureVectorForAllIDs);
+            preProcessing.Preprocess();
         }
-        preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
+        featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
     }
 
     void Start()

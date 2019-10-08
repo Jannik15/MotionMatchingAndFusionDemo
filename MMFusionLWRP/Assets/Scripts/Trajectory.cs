@@ -20,7 +20,16 @@ public class Trajectory
         float dist = 0;
         for (int i = 0; i < trajectoryPoints.Length; i++)
         {
-            
+            dist += trajectoryPoints[i].GetDiff(otherTrajectory.trajectoryPoints[i]);
+        }
+        return dist;
+    }
+    public float CompareTrajectories(Trajectory otherTrajectory, float pointWeight, float forwardWeight)
+    {
+        float dist = 0;
+        for (int i = 0; i < trajectoryPoints.Length; i++)
+        {
+            dist += trajectoryPoints[i].GetDiffWithWeights(otherTrajectory.trajectoryPoints[i], pointWeight, forwardWeight);
         }
         return dist;
     }

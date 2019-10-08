@@ -6,7 +6,7 @@
     private string clipName;
     private float frame;
 
-    FeatureVector(MMPose _pose, Trajectory _trajectory, int _id, string _clipName, float _frame)
+    public FeatureVector(MMPose _pose, Trajectory _trajectory, int _id, string _clipName, float _frame)
     {
         pose = _pose;
         trajectory = _trajectory;
@@ -34,5 +34,14 @@
     public float GetFrame()
     {
         return frame;
+    }
+
+    public Trajectory CreateTrajectory(int stepSize, int trajLength)
+    {
+        for (int i = 0; i < trajLength; i++)
+        {
+            
+        }
+        return trajectory;
     }
 }

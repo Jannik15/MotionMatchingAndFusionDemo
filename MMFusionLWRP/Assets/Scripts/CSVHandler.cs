@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using UnityEngine;
 
 public class CSVHandler
 {
-
     private string csvPath = "Assets/Resources/CSV/AnimData.csv";
     private static string[] csvLabels =
     {
@@ -22,17 +20,13 @@ public class CSVHandler
         "RootPos.x" /*[8]*/,        "RootPos.z" /*[9]*/,
         "Forward.x" /*[10]*/,        "Forward.z"  /*[11]*/
     };
-    public void WriteCSV(List<FeatureVector> dataToWrite)
+    private List<string> allClipNames;
+    private List<float> allFrames;
+    private List<MMPose> allPoses;
+    private List<TrajectoryPoint> allPoints;
+
+    public void WriteCSV(List<MMPose> poseData, List<TrajectoryPoint> pointData, List<string> clipNames, List<float> frames)
     {
-        MMPose[] poseData = new MMPose[dataToWrite.Count];
-        TrajectoryPoint[] trajData = new TrajectoryPoint[dataToWrite.Count];
-
-        for (int i = 0; i < dataToWrite.Count; i++)
-        {
-            poseData[i] = dataToWrite[i].GetPose();
-            trajData[i] = dataToWrite[i].GetTrajectory().GetTrajectoryPoints()[0];
-        }
-
         using (var file = File.CreateText(csvPath))
         {
             file.WriteLine(string.Join(",", csvLabels));
@@ -41,22 +35,24 @@ public class CSVHandler
             string spec = "G";
             CultureInfo ci = CultureInfo.CreateSpecificCulture("en-US");
 
-            for (int i = 0; i < dataToWrite.Count; i++)
+            for (int i = 0; i < poseData.Count; i++)
             {
                 string[] tempLine =
                 {
                     // General info
-                    dataToWrite[i].GetClipName(), dataToWrite[i].GetFrame().ToString(spec, ci),
+                    clipNames[i], frames[i].ToString(spec, ci),
+
                     // Pose data
                     poseData[i].GetRootVelocity().x.ToString(spec, ci), poseData[i].GetRootVelocity().z.ToString(spec, ci),
                     poseData[i].GetLefFootVelocity().x.ToString(spec, ci), poseData[i].GetLefFootVelocity().z.ToString(spec, ci),
                     poseData[i].GetRightFootVelocity().x.ToString(spec, ci), poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
+
                     // TrajectoryPoint data
-                    trajData[i].GetPoint().x.ToString(spec, ci), trajData[i].GetPoint().z.ToString(spec, ci),
-                    trajData[i].GetForward().x.ToString(spec, ci), trajData[i].GetForward().z.ToString(spec, ci),
+                    pointData[i].GetPoint().x.ToString(spec, ci), pointData[i].GetPoint().z.ToString(spec, ci),
+                    pointData[i].GetForward().x.ToString(spec, ci), pointData[i].GetForward().z.ToString(spec, ci),
                 };
 
-                file.WriteLine(string.Join(",", csvLabels));
+                file.WriteLine(string.Join(",", tempLine));
             }
         }
     }
@@ -64,37 +60,51 @@ public class CSVHandler
     {
         StreamReader reader = new StreamReader(csvPath);
 
-        bool endOfFile = false;
         bool ignoreHeaders = true;
+
+        allClipNames = new List<string>();
+        allFrames = new List<float>();
+        allPoses = new List<MMPose>();
+        allPoints = new List<TrajectoryPoint>();
         List<FeatureVector> featuresFromCSV = new List<FeatureVector>();
-        int idIterator = 0;
 
-        while (!endOfFile)
+        while (true) // True until break is called within the loop
         {
-            string dataString = reader.ReadLine();
+            string dataString = reader.ReadLine(); // Reads a line (or row) in the CSV file
 
-            if (dataString == null)
+            if (dataString == null) // No more data to be read, so break from the while loop
             {
-                endOfFile = true;
                 break;
             }
-
-            string[] tempString = dataString.Split(',');
+            string[] tempString = dataString.Split(','); // line is split into each column
             NumberFormatInfo format = CultureInfo.InvariantCulture.NumberFormat;
 
-            if (!ignoreHeaders)
+            if (!ignoreHeaders) // Iterates for each row in the CSV aside from the first (header) row
             {
-                string tempClipNameValue = "";
-                TrajectoryPoint[] trajPoints = new TrajectoryPoint[trajPointsLength];
-                //featuresFromCSV.Add(new FeatureVector(new MMPose(new Vector3(float.Parse(tempString[2], format),0.0f,float.Parse(tempString[3], format)),
-                //        new Vector3(float.Parse(tempString[4], format), 0.0f, float.Parse(tempString[5], format)), 
-                //        new Vector3(float.Parse(tempString[6], format), 0.0f, float.Parse(tempString[7], format))), 
-                //    new Trajectory(), 
-                //    idIterator, tempString[0], tempString[1]));
-                idIterator++;
+                allClipNames.Add(tempString[0]);
+                allFrames.Add(float.Parse(tempString[1], format));
+                allPoses.Add(new MMPose(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
+                    new Vector3(float.Parse(tempString[4], format), 0.0f, float.Parse(tempString[5], format)),
+                    new Vector3(float.Parse(tempString[6], format), 0.0f, float.Parse(tempString[7], format))));
+                allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[8], format), 0.0f, float.Parse(tempString[9], format)),
+                    new Vector3(float.Parse(tempString[10], format),0.0f, float.Parse(tempString[11], format))));
             }
             else
                 ignoreHeaders = false;
+        }
+
+        // Convert data to FeatureVector
+        for (int i = 0; i < allClipNames.Count; i++)
+        {
+            TrajectoryPoint[] trajPoints = new TrajectoryPoint[trajPointsLength];
+            for (int j = 0; j < trajPointsLength; j++)
+            {
+                if (i + j * trajStepSize < allPoints.Count) // Out of range prevention
+                    trajPoints[j] = new TrajectoryPoint(allPoints[i + j * trajStepSize].GetPoint(), allPoints[i + j * trajStepSize].GetForward());
+                else
+                    trajPoints[j] = new TrajectoryPoint();
+            }
+            featuresFromCSV.Add(new FeatureVector(allPoses[i], new Trajectory(trajPoints), i, allClipNames[i], allFrames[i]));
         }
         return featuresFromCSV;
     }
