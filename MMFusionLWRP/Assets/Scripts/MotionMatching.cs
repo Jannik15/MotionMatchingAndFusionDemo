@@ -11,6 +11,7 @@ public class MotionMatching : MonoBehaviour
     // --- Collections
     private List<FeatureVector> featureVectors;
     public AnimationClip[] allClips;
+    public string[] jointNames;
 
     // --- Public 
     public bool _preProcess;
@@ -19,10 +20,12 @@ public class MotionMatching : MonoBehaviour
 
     void Awake() // Load animation data
     {
+		#if UNITY_EDITOR
         if (_preProcess)
         {
-            preProcessing.Preprocess();
+            preProcessing.Preprocess(allClips, jointNames);
         }
+		#endif
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
     }
 

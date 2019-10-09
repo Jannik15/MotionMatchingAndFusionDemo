@@ -16,7 +16,7 @@ public class PreProcessing
     // --- Variables
     private int sampleRate = 30;
 
-    public void Preprocess(AnimationClip[] allClips)
+    public void Preprocess(AnimationClip[] allClips, string[] jointNames)
     {
         allClipNames = new List<string>();
         allFrames = new List<float>();
@@ -32,11 +32,13 @@ public class PreProcessing
                 allClipNames.Add(clip.name);
                 allFrames.Add(j);
                 // TODO: Get data from clip bindings, and add it to the relevant lists
-                allPoses.Add(new MMPose());
-                allPoints.Add(new TrajectoryPoint());
+                Vector3 rootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[0]), GetJointPositionAtFrame(clip, j-1,jointNames[0]));
+                Vector3 lFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j - 1, jointNames[1]));
+                Vector3 rFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[2]), GetJointPositionAtFrame(clip, j - 1, jointNames[2]));
+                allPoses.Add(new MMPose(rootVel, lFootVel, rFootVel));
+                allPoints.Add(new TrajectoryPoint(GetJointPositionAtFrame(clip,j, jointNames[0]), GetJointQuaternionAtFrame(clip,j,jointNames[0]) * Vector3.forward));
                 i++;
             }
-
         }
 
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
@@ -62,6 +64,23 @@ public class PreProcessing
             }
         }
         return new Vector3(vectorValues[0], vectorValues[1], vectorValues[2]);
+    }
+    public Quaternion GetJointQuaternionAtFrame(AnimationClip clip, int frame, string jointName)
+    {
+	    // Bindings are inherited from a clip, and the AnimationCurve is inherited from the clip's binding
+	    AnimationCurve curve = new AnimationCurve();
+	    float[] vectorValues = new float[4];
+	    int arrayEnumerator = 0;
+	    foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(clip))
+	    {
+		    if (binding.propertyName.Contains(jointName))
+		    {
+			    curve = AnimationUtility.GetEditorCurve(clip, binding);
+			    vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
+			    arrayEnumerator++;
+		    }
+	    }
+	    return new Quaternion(vectorValues[0], vectorValues[1], vectorValues[2], vectorValues[3]);
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
     {
