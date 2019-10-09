@@ -20,6 +20,7 @@ public class MotionMatching : MonoBehaviour
 
     void Awake() // Load animation data
     {
+		preProcessing = new PreProcessing();
 		#if UNITY_EDITOR
         if (_preProcess)
         {

@@ -18,6 +18,8 @@ public class PreProcessing
 
     public void Preprocess(AnimationClip[] allClips, string[] jointNames)
     {
+		csvHandler = new CSVHandler();
+
         allClipNames = new List<string>();
         allFrames = new List<float>();
         allPoses = new List<MMPose>();
@@ -35,6 +37,7 @@ public class PreProcessing
                 Vector3 rootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[0]), GetJointPositionAtFrame(clip, j-1,jointNames[0]));
                 Vector3 lFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j - 1, jointNames[1]));
                 Vector3 rFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[2]), GetJointPositionAtFrame(clip, j - 1, jointNames[2]));
+
                 allPoses.Add(new MMPose(rootVel, lFootVel, rFootVel));
                 allPoints.Add(new TrajectoryPoint(GetJointPositionAtFrame(clip,j, jointNames[0]), GetJointQuaternionAtFrame(clip,j,jointNames[0]) * Vector3.forward));
                 i++;
@@ -45,6 +48,8 @@ public class PreProcessing
     }
     public List<FeatureVector> LoadData(int pointsPerTrajectory, int framesBetweenTrajectoryPoints)
     {
+		if (csvHandler == null)
+			csvHandler = new CSVHandler();
         csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints);
         List<FeatureVector> featureVector = new List<FeatureVector>();
         return featureVector;
@@ -56,7 +61,7 @@ public class PreProcessing
         int arrayEnumerator = 0;
         foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(clip))
         {
-            if (binding.propertyName.Contains(jointName))
+            if (binding.propertyName.Contains(jointName + "T"))
             {
                 var curve = AnimationUtility.GetEditorCurve(clip, binding);
                 vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
@@ -73,7 +78,7 @@ public class PreProcessing
 	    int arrayEnumerator = 0;
 	    foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(clip))
 	    {
-		    if (binding.propertyName.Contains(jointName))
+		    if (binding.propertyName.Contains(jointName + "Q"))
 		    {
 			    curve = AnimationUtility.GetEditorCurve(clip, binding);
 			    vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
@@ -84,6 +89,6 @@ public class PreProcessing
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
     {
-        return (currentPos - prevPos) / 1 / sampleRate;
+        return currentPos - prevPos;
     }
 }

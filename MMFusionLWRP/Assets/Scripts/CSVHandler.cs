@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 public class CSVHandler
 {
-    private string csvPath = "Assets/Resources/CSV/AnimData.csv";
+    private string path = "Assets/Resources/MotionMatching";
+    private string fileName = "AnimData.csv";
     private static string[] csvLabels =
     {
         // General info
@@ -13,12 +15,12 @@ public class CSVHandler
 
         // Pose data
         "RootVel.x" /*[2]*/,        "RootVel.z" /*[3]*/,
-        "LFootVel.x" /*[4]*/,       "LFootVel.z" /*[5]*/,
-        "RFootVel.x" /*[6]*/,       "RFootVel.z" /*[7]*/,
+        "LFootVel.x" /*[4]*/,       "LFootVel.y" /*[5]*/,   "LFootVel.z" /*[6]*/,
+        "RFootVel.x" /*[7]*/,       "RFootVel.y" /*[8]*/,     "RFootVel.z" /*[9]*/,
 
         // TrajectoryPoint data
-        "RootPos.x" /*[8]*/,        "RootPos.z" /*[9]*/,
-        "Forward.x" /*[10]*/,        "Forward.z"  /*[11]*/
+        "RootPos.x" /*[10]*/,        "RootPos.z" /*[11]*/,
+        "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
     };
     private List<string> allClipNames;
     private List<float> allFrames;
@@ -27,7 +29,15 @@ public class CSVHandler
 
     public void WriteCSV(List<MMPose> poseData, List<TrajectoryPoint> pointData, List<string> clipNames, List<float> frames)
     {
-        using (var file = File.CreateText(csvPath))
+	    if (!AssetDatabase.IsValidFolder(path))
+	    {
+		    if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+		    {
+			    AssetDatabase.CreateFolder("Assets", "Resources");
+		    }
+		    AssetDatabase.CreateFolder("Assets/Resources", "MotionMatching");
+	    }
+        using (var file = File.CreateText(path + "/" + fileName))
         {
             file.WriteLine(string.Join(",", csvLabels));
 
@@ -43,9 +53,9 @@ public class CSVHandler
                     clipNames[i], frames[i].ToString(spec, ci),
 
                     // Pose data
-                    poseData[i].GetRootVelocity().x.ToString(spec, ci), poseData[i].GetRootVelocity().z.ToString(spec, ci),
-                    poseData[i].GetLefFootVelocity().x.ToString(spec, ci), poseData[i].GetLefFootVelocity().z.ToString(spec, ci),
-                    poseData[i].GetRightFootVelocity().x.ToString(spec, ci), poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
+                    Mathf.Abs(poseData[i].GetRootVelocity().x).ToString(spec, ci), Mathf.Abs(poseData[i].GetRootVelocity().z).ToString(spec, ci),
+                    Mathf.Abs(poseData[i].GetLefFootVelocity().x).ToString(spec, ci), Mathf.Abs(poseData[i].GetLefFootVelocity().y).ToString(spec, ci), Mathf.Abs(poseData[i].GetLefFootVelocity().z).ToString(spec, ci),
+                    Mathf.Abs(poseData[i].GetRightFootVelocity().x).ToString(spec, ci), Mathf.Abs(poseData[i].GetRightFootVelocity().y).ToString(spec, ci), Mathf.Abs(poseData[i].GetRightFootVelocity().z).ToString(spec, ci), 
 
                     // TrajectoryPoint data
                     pointData[i].GetPoint().x.ToString(spec, ci), pointData[i].GetPoint().z.ToString(spec, ci),
@@ -58,7 +68,7 @@ public class CSVHandler
     }
     public List<FeatureVector> ReadCSV(int trajPointsLength, int trajStepSize)
     {
-        StreamReader reader = new StreamReader(csvPath);
+        StreamReader reader = new StreamReader(path + "/" + fileName);
 
         bool ignoreHeaders = true;
 
@@ -84,10 +94,10 @@ public class CSVHandler
                 allClipNames.Add(tempString[0]);
                 allFrames.Add(float.Parse(tempString[1], format));
                 allPoses.Add(new MMPose(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
-                    new Vector3(float.Parse(tempString[4], format), 0.0f, float.Parse(tempString[5], format)),
-                    new Vector3(float.Parse(tempString[6], format), 0.0f, float.Parse(tempString[7], format))));
-                allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[8], format), 0.0f, float.Parse(tempString[9], format)),
-                    new Vector3(float.Parse(tempString[10], format),0.0f, float.Parse(tempString[11], format))));
+                    new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
+                    new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format))));
+                allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[10], format), 0.0f, float.Parse(tempString[11], format)),
+                    new Vector3(float.Parse(tempString[12], format),0.0f, float.Parse(tempString[13], format))));
             }
             else
                 ignoreHeaders = false;
