@@ -15,6 +15,7 @@ public class PreProcessing
 
     // --- Variables
     private int sampleRate = 30;
+    private float calucaltedSampleRate = 1 / 30;
 
     public void Preprocess(AnimationClip[] allClips, string[] jointNames)
     {
@@ -87,6 +88,22 @@ public class PreProcessing
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
     {
-        return currentPos - prevPos;
+        return currentPos - prevPos / calucaltedSampleRate;
+    }
+
+    private AnimationClip[] FindClipsFromAnimatorController()
+    {
+        if (GameObject.FindGameObjectWithTag("Player") == null)
+            return null;
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+
+        if (player.GetComponent<Animator>() == null)
+            return null;
+
+        Animator anim = player.GetComponent<Animator>();
+
+        AnimationClip[] tempAnimClipArr = anim.runtimeAnimatorController.animationClips;
+
+        return tempAnimClipArr;
     }
 }

@@ -473,16 +473,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b76abe709e9dcf42a14c8915b96f35c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allClips:
-  - {fileID: 7400000, guid: c31c80009cccec043ac9ec4439552a4d, type: 3}
-  - {fileID: 1598898945879412647, guid: 5a6e0062d523cd64595aa3a410e4a335, type: 3}
-  - {fileID: -9220950573565929400, guid: 5a6e0062d523cd64595aa3a410e4a335, type: 3}
-  - {fileID: 7400000, guid: 5a6e0062d523cd64595aa3a410e4a335, type: 3}
+  animContainer: {fileID: 11400000, guid: d984637c3976fac478d264e510426c2d, type: 2}
   jointNames:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 0
+  _preProcess: 1
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
 --- !u!114 &1861943230
