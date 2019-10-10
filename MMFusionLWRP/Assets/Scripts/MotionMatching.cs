@@ -10,7 +10,8 @@ public class MotionMatching : MonoBehaviour
 
     // --- Collections
     private List<FeatureVector> featureVectors;
-    public AnimationClip[] allClips;
+    private AnimationClip[] allClips;
+    public AnimContainer animContainer; // put ref to chosen animation container scriptable object
     public string[] jointNames;
 
     // --- Public 
@@ -20,10 +21,19 @@ public class MotionMatching : MonoBehaviour
 
     void Awake() // Load animation data
     {
-		preProcessing = new PreProcessing();
+
+        preProcessing = new PreProcessing();
 		#if UNITY_EDITOR
         if (_preProcess)
         {
+            if (animContainer != null)
+                allClips = animContainer.animationClips;
+            if (allClips == null)
+            {
+                Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
+                return;
+            }
+
             preProcessing.Preprocess(allClips, jointNames);
         }
 		#endif
@@ -40,5 +50,14 @@ public class MotionMatching : MonoBehaviour
     void Update()
     {
         
+    }
+
+    private void SaveAllAnimClipsToContainer(AnimationClip[] animClips)
+    {
+        if (animContainer == null)
+            return;
+
+        animContainer.animationClips = animClips;
+        Debug.Log("AnimationClips saved to scriptable object " + animContainer.name);
     }
 }

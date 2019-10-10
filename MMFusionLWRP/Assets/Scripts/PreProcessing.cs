@@ -91,4 +91,20 @@ public class PreProcessing
     {
         return currentPos - prevPos;
     }
+
+    private AnimationClip[] FindClipsFromAnimatorController()
+    {
+        if (GameObject.FindGameObjectWithTag("Player") == null)
+            return null;
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+
+        if (player.GetComponent<Animator>() == null)
+            return null;
+
+        Animator anim = player.GetComponent<Animator>();
+
+        AnimationClip[] tempAnimClipArr = anim.runtimeAnimatorController.animationClips;
+
+        return tempAnimClipArr;
+    }
 }
