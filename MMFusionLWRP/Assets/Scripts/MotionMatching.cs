@@ -124,6 +124,39 @@ public class MotionMatching : MonoBehaviour
 
     #endregion
 
+    List<FeatureVector> TrajectoryMatching(Trajectory movement, float candidatesPerMisc)
+    {
+        /* Culled candidates:
+         * 3. Candidates that have been added the culledIDs queue (these have already been used)
+         * 4. Candidates pertaining to the same animation as the current animation, but are too close to the current frame (previous)
+        */
+
+
+        //for (int i = 0; i < animTrajectoriesInCharSpace.Length; i++)
+        //{
+        //    if (animTrajectoriesInCharSpace[i].GetTrajectoryId() >= allClips[0].length * allClips[0].frameRate &&
+        //        animTrajectoriesInCharSpace[i].GetTrajectoryId() != currentAnimId &&
+        //        !culledIDs.Contains(animTrajectoriesInCharSpace[i].GetTrajectoryId()))
+        //    {
+        //        if (animTrajectoriesInCharSpace[i].GetClipName() == currentClip.name)
+        //        {
+        //            if (animTrajectories[i].GetTrajectoryId() >= currentAnimId - 10 && animTrajectories[i].GetTrajectoryId() < currentAnimId)
+        //            {
+        //                continue; // Skip this candidate if it belong to the same animation, but at a previous frame
+        //            }
+        //        }
+        //        if (animTrajectoriesInCharSpace[i].CompareTrajectoryPoints(movement) +
+        //            animTrajectoriesInCharSpace[i].CompareTrajectoryForwards(movement) < threshold)
+        //        { // TODO: Change to best # (KNN) for each anim type (misc tag, like left, forward, right) instead of threshold
+        //            //Debug.Log("TrajComparisonDist: " + animTrajectoriesInCharSpace[i].CompareTrajectoryPoints(movement) +
+        //            //          animTrajectoriesInCharSpace[i].CompareTrajectoryForwards(movement));
+        //            trajectoryCandidates.Add(animTrajectoriesInCharSpace[i]);
+        //        }
+        //    }
+        //}
+        //return trajectoryCandidates;
+    }
+
     private void PoseMatching()
     {
 

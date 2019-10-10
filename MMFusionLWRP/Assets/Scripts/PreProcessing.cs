@@ -43,7 +43,6 @@ public class PreProcessing
                 i++;
             }
         }
-
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
     }
     public List<FeatureVector> LoadData(int pointsPerTrajectory, int framesBetweenTrajectoryPoints)
