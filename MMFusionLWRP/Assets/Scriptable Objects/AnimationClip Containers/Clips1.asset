@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94ddd5e65ff788340b09ba00e529af4f, type: 3}
   m_Name: Clips1
   m_EditorClassIdentifier: 
-  animationClips: []
+  animationClips:
+  - {fileID: 7400000, guid: c31c80009cccec043ac9ec4439552a4d, type: 3}

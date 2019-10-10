@@ -15,6 +15,7 @@ public class PreProcessing
 
     // --- Variables
     private int sampleRate = 30;
+    private float calucaltedSampleRate = 1 / 30;
 
     public void Preprocess(AnimationClip[] allClips, string[] jointNames)
     {
@@ -34,6 +35,7 @@ public class PreProcessing
                 allClipNames.Add(clip.name);
                 allFrames.Add(j);
                 // TODO: Get data from clip bindings, and add it to the relevant lists
+
                 Vector3 rootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[0]), GetJointPositionAtFrame(clip, j-1,jointNames[0]));
                 Vector3 lFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j - 1, jointNames[1]));
                 Vector3 rFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[2]), GetJointPositionAtFrame(clip, j - 1, jointNames[2]));
@@ -89,7 +91,7 @@ public class PreProcessing
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
     {
-        return currentPos - prevPos;
+        return currentPos - prevPos / calucaltedSampleRate;
     }
 
     private AnimationClip[] FindClipsFromAnimatorController()

@@ -52,6 +52,11 @@ public class MotionMatching : MonoBehaviour
         
     }
 
+    private void PoseMatching()
+    {
+
+    }
+
     private void SaveAllAnimClipsToContainer(AnimationClip[] animClips)
     {
         if (animContainer == null)
