@@ -14,8 +14,8 @@ public class PreProcessing
     private List<TrajectoryPoint> allPoints;
 
     // --- Variables
-    private int sampleRate = 30;
-    private float calucaltedSampleRate = 1 / 30;
+    private float sampleRate = 30;
+    private float calculatedSampleRate;
 
     public void Preprocess(AnimationClip[] allClips, string[] jointNames)
     {
@@ -26,7 +26,8 @@ public class PreProcessing
         allPoses = new List<MMPose>();
         allPoints = new List<TrajectoryPoint>();
 
-        sampleRate = (int)allClips[0].frameRate; // Update the sampling rate to the clips framerate 
+        sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
+        calculatedSampleRate = 1 / sampleRate;
         int i = 0;
         foreach (var clip in allClips)
         {
@@ -87,7 +88,7 @@ public class PreProcessing
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
     {
-        return currentPos - prevPos / calucaltedSampleRate;
+        return (currentPos - prevPos) / calculatedSampleRate;
     }
 
     private AnimationClip[] FindClipsFromAnimatorController()
