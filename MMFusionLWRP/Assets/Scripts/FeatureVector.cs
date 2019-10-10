@@ -1,4 +1,6 @@
-﻿public class FeatureVector
+﻿using UnityEngine;
+
+public class FeatureVector
 {
     private MMPose pose;
     private Trajectory trajectory;
@@ -36,12 +38,21 @@
         return frame;
     }
 
-    public Trajectory CreateTrajectory(int stepSize, int trajLength)
+    public Trajectory CreateTrajectory(TrajectoryPoint pointAtNextStep, int i)
     {
-        for (int i = 0; i < trajLength; i++)
-        {
-            
+	    if (i == 0) // We check for index, since we do not want to override the initial trajectory point of the id.
+	    {
+		    if (trajectory.GetTrajectoryPoints()[0] == null) // This statement should never be true, if it is the instantiation of the trajectories is incorrect
+				Debug.Log("Trajectory with ID: " + id + " is missing it's first component!");
+	    }
+	    else if (pointAtNextStep != null)
+	    {
+		    TrajectoryPoint tempPoint = pointAtNextStep;
+		    if (trajectory.GetTrajectoryPoints()[i] == null || trajectory.GetTrajectoryPoints()[i].GetPoint() == Vector3.zero)
+			    trajectory.GetTrajectoryPoints()[i] = tempPoint;
         }
+	    else
+		    Debug.Log("When trying to populate Trajectory of ID: " + id + " the Point at next step, with index " + i + " is null");
         return trajectory;
     }
 }
