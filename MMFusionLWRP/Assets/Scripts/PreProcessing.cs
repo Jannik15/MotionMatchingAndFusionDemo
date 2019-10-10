@@ -33,8 +33,7 @@ public class PreProcessing
             {
                 allClipNames.Add(clip.name);
                 allFrames.Add(j);
-                // TODO: Get data from clip bindings, and add it to the relevant lists
-                Vector3 rootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[0]), GetJointPositionAtFrame(clip, j-1,jointNames[0]));
+                Vector3 rootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[0]), GetJointPositionAtFrame(clip, j - 1, jointNames[0]));
                 Vector3 lFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j - 1, jointNames[1]));
                 Vector3 rFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[2]), GetJointPositionAtFrame(clip, j - 1, jointNames[2]));
 
@@ -50,8 +49,7 @@ public class PreProcessing
     {
 		if (csvHandler == null)
 			csvHandler = new CSVHandler();
-        csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints);
-        List<FeatureVector> featureVector = new List<FeatureVector>();
+		List<FeatureVector> featureVector = csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints);
         return featureVector;
     }
     public Vector3 GetJointPositionAtFrame(AnimationClip clip, int frame, string jointName)
