@@ -29,7 +29,7 @@ public class MotionMatching : MonoBehaviour
     private int currentFrame, currentID = -1;
 
     // --- Weights
-    [Range(0.1f, 1f)]
+    [Range(0, 1)]
     public float weightLFootVel = 1, weightRFootVel = 1, weightRootVel = 1;
 
     private void Awake() // Load animation data
