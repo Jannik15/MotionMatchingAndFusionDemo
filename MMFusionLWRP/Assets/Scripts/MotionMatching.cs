@@ -28,6 +28,10 @@ public class MotionMatching : MonoBehaviour
     private AnimationClip currentClip;
     private int currentFrame, currentID = -1;
 
+    // --- Weights
+    [Range(0, 1)]
+    public float weightLFootVel = 1, weightRFootVel = 1, weightRootVel = 1;
+
     private void Awake() // Load animation data
     {
 	    movement = GetComponent<Movement>();
@@ -82,6 +86,7 @@ public class MotionMatching : MonoBehaviour
 	    }
 	    currentFrame = frame;
 		bannedIDs.Enqueue(id);
+        currentID = id;
 		Debug.Log("Banned ID Queue count: " + bannedIDs.Count);
 		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, currentFrame / currentClip.length); // 0.3f was recommended by Magnus
     }
@@ -104,10 +109,15 @@ public class MotionMatching : MonoBehaviour
     }
     private IEnumerator MotionMatch()
     {
+        int candidateID = 0;
 	    SetBoolsInList(enumeratorBools, false);
 	    _isMotionMatching = true;
 	    while (true)
 	    {
+            currentID += queryRateInFrames;
+            // candidateID = PoseMatching(/* Insert candidates */);
+
+
 		    yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
 	    }
     }
@@ -134,7 +144,7 @@ public class MotionMatching : MonoBehaviour
 
         for (int i = 0; i < featureVectors.Count; i++)
         {
-            if (featureVectors[i].GetID() != currentID && !bannedIDs.Contains(featureVectors[i].GetID()))
+            if (featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < featureVectors[i].GetID() - queryRateInFrames)
             {
                 if (featureVectors[i].GetClipName() == currentClip.name)
                 {
@@ -155,9 +165,33 @@ public class MotionMatching : MonoBehaviour
         return candidates;
     }
 
-    private void PoseMatching()
+    private int PoseMatching(List<FeatureVector> candidates)
     {
 
+        int bestId = 0;
+        float currentDif = 9999999;
+
+        foreach (var candidate in candidates)
+        {
+            float candidateDif = ComparePoses(featureVectors[currentID].GetPose(), candidate.GetPose());
+            if (candidateDif < currentDif)
+            {
+                bestId = candidate.GetID();
+            }
+        }
+
+        return bestId;
+
+    }
+
+    private float ComparePoses(MMPose currentPose, MMPose candidatePose)
+    {
+        float difference = 0;
+        difference += Vector3.Distance(currentPose.GetLefFootVelocity() * weightLFootVel, candidatePose.GetLefFootVelocity() * weightLFootVel);
+        difference += Vector3.Distance(currentPose.GetRightFootVelocity() * weightRFootVel, candidatePose.GetRightFootVelocity() * weightRFootVel);
+        difference += Vector3.Distance(currentPose.GetRootVelocity() * weightRootVel, candidatePose.GetRootVelocity() * weightRootVel);
+
+        return difference;
     }
 
     private void SaveAllAnimClipsToContainer(AnimationClip[] animClips)
