@@ -26,7 +26,7 @@ public class MotionMatching : MonoBehaviour
     private Queue<int> bannedIDs;
     private List<bool> enumeratorBools;
     private AnimationClip currentClip;
-    private int currentFrame;
+    private int currentFrame, currentID = -1;
 
     private void Awake() // Load animation data
     {
@@ -126,35 +126,33 @@ public class MotionMatching : MonoBehaviour
 
     List<FeatureVector> TrajectoryMatching(Trajectory movement, float candidatesPerMisc)
     {
-        /* Culled candidates:
-         * 3. Candidates that have been added the culledIDs queue (these have already been used)
-         * 4. Candidates pertaining to the same animation as the current animation, but are too close to the current frame (previous)
-        */
+		List<FeatureVector> candidates = new List<FeatureVector>();
+	    /* Culled candidates:
+	     * 1. Candidates that have been added the culledIDs queue (these have already been used)
+	     * 2. Candidates pertaining to the same animation as the current animation, but are too close to the current frame (previous)
+	    */
 
-
-        //for (int i = 0; i < animTrajectoriesInCharSpace.Length; i++)
-        //{
-        //    if (animTrajectoriesInCharSpace[i].GetTrajectoryId() >= allClips[0].length * allClips[0].frameRate &&
-        //        animTrajectoriesInCharSpace[i].GetTrajectoryId() != currentAnimId &&
-        //        !culledIDs.Contains(animTrajectoriesInCharSpace[i].GetTrajectoryId()))
-        //    {
-        //        if (animTrajectoriesInCharSpace[i].GetClipName() == currentClip.name)
-        //        {
-        //            if (animTrajectories[i].GetTrajectoryId() >= currentAnimId - 10 && animTrajectories[i].GetTrajectoryId() < currentAnimId)
-        //            {
-        //                continue; // Skip this candidate if it belong to the same animation, but at a previous frame
-        //            }
-        //        }
-        //        if (animTrajectoriesInCharSpace[i].CompareTrajectoryPoints(movement) +
-        //            animTrajectoriesInCharSpace[i].CompareTrajectoryForwards(movement) < threshold)
-        //        { // TODO: Change to best # (KNN) for each anim type (misc tag, like left, forward, right) instead of threshold
-        //            //Debug.Log("TrajComparisonDist: " + animTrajectoriesInCharSpace[i].CompareTrajectoryPoints(movement) +
-        //            //          animTrajectoriesInCharSpace[i].CompareTrajectoryForwards(movement));
-        //            trajectoryCandidates.Add(animTrajectoriesInCharSpace[i]);
-        //        }
-        //    }
-        //}
-        //return trajectoryCandidates;
+        for (int i = 0; i < featureVectors.Count; i++)
+        {
+            if (featureVectors[i].GetID() != currentID && !bannedIDs.Contains(featureVectors[i].GetID()))
+            {
+                if (featureVectors[i].GetClipName() == currentClip.name)
+                {
+                    if (featureVectors[i].GetID() >= currentID - 10 && featureVectors[i].GetID() < currentID)
+                    {
+                        continue; // Skip this candidate if it belong to the same animation, but at a previous frame
+                    }
+                }
+                if (featureVectors[i].GetTrajectory().CompareTrajectories(movement) +
+                    featureVectors[i].GetTrajectory().CompareTrajectories(movement) < candidatesPerMisc)
+                { // TODO: Change to best # (KNN) for each anim type (misc tag, like left, forward, right) instead of threshold
+                    //Debug.Log("TrajComparisonDist: " + featureVectors[i].CompareTrajectoryPoints(movement) +
+                    //          featureVectors[i].CompareTrajectoryForwards(movement));
+                    candidates.Add(featureVectors[i]);
+                }
+            }
+        }
+        return candidates;
     }
 
     private void PoseMatching()
