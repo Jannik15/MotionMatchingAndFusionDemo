@@ -109,14 +109,13 @@ public class MotionMatching : MonoBehaviour
     }
     private IEnumerator MotionMatch()
     {
+        int candidateID = 0;
 	    SetBoolsInList(enumeratorBools, false);
 	    _isMotionMatching = true;
 	    while (true)
 	    {
             currentID += queryRateInFrames;
-
-
-
+            // candidateID = PoseMatching(/* Insert candidates */);
 
 
 		    yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
@@ -166,38 +165,23 @@ public class MotionMatching : MonoBehaviour
         return candidates;
     }
 
-    private void PoseMatching(List<FeatureVector> candidates)
+    private int PoseMatching(List<FeatureVector> candidates)
     {
 
-        int newId = 0;
-        float currentDif = 999999;
+        int bestId = 0;
+        float currentDif = 9999999;
 
         foreach (var candidate in candidates)
         {
-            float candidateDif = ComparePoses(featureVectors[currentID].GetPose(), candidate);
+            float candidateDif = ComparePoses(featureVectors[currentID].GetPose(), candidate.GetPose());
             if (candidateDif < currentDif)
             {
-                newId = candidate.GetID();
+                bestId = candidate.GetID();
             }
         }
 
+        return bestId;
 
-        //float poseDistance = float.MaxValue;
-        //int newId = 0;
-        //MMPose movementPose = new MMPose();
-
-        //foreach (var candidate in candidates)
-        //{
-        //    MMPose candidatePose = preprocess.poses[candidate.GetTrajectoryId()].ConvertToOtherPoseSpace(movementPose);
-        //    float candidateDistance = candidatePose.ComparePose(movementPose);
-        //    if (candidateDistance < poseDistance)
-        //    {
-        //        poseDistance = candidateDistance;
-        //        newId = candidate.GetTrajectoryId();
-        //    }
-        //}
-        ////Debug.Log("Pose dist: " + poseDistance);
-        //return newId;
     }
 
     private float ComparePoses(MMPose currentPose, MMPose candidatePose)
