@@ -2,11 +2,12 @@
 
 public class FeatureVector
 {
+	private int id;
+	private string clipName;
+	private float frame;
     private MMPose pose;
     private Trajectory trajectory;
-    private int id;
-    private string clipName;
-    private float frame;
+    private Vector3 rootVel, lFootVel, rFootVel;
 
     public FeatureVector(MMPose _pose, Trajectory _trajectory, int _id, string _clipName, float _frame)
     {
@@ -38,6 +39,18 @@ public class FeatureVector
         return frame;
     }
 
+    public Vector3 GetRootVelocity()
+    {
+	    return rootVel;
+    }
+    public Vector3 GetLeftFootVelocity()
+    {
+	    return lFootVel;
+    }
+    public Vector3 GetRightFootVelocity()
+    {
+	    return rFootVel;
+    }
     public Trajectory CreateTrajectory(TrajectoryPoint pointAtNextStep, int i)
     {
 	    if (i == 0) // We check for index, since we do not want to override the initial trajectory point of the id.
@@ -54,5 +67,12 @@ public class FeatureVector
 	    else
 		    Debug.Log("When trying to populate Trajectory of ID: " + id + " the Point at next step, with index " + i + " is null");
         return trajectory;
+    }
+
+    public void CalculateVelocity(MMPose previousPose, float sampleRate)
+    {
+	    rootVel = (pose.GetRootPos() - previousPose.GetRootPos()) * sampleRate;
+		lFootVel = (pose.GetLeftFootPos() - previousPose.GetLeftFootPos()) * sampleRate;
+		rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
     }
 }

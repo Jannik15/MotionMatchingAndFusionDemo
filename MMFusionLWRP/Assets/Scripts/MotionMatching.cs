@@ -21,7 +21,7 @@ public class MotionMatching : MonoBehaviour
     public bool _preProcess;
     public int pointsPerTrajectory = 4;
     public int framesBetweenTrajectoryPoints = 10;
-    [SerializeField] private int queryRateInFrames = 10, bannedIDsLength = 10, previousFramesToIgnore = 10;
+    [SerializeField] private int queryRateInFrames = 10, bannedIDsLength = 10;
     [SerializeField] private bool _isMotionMatching, _isIdling;
     private Queue<int> bannedIDs;
     private List<bool> enumeratorBools;

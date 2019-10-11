@@ -28,7 +28,7 @@ public class CSVHandler
     private List<TrajectoryPoint> allPoints;
     private bool ignoreFrame = false;
 
-    public void WriteCSV(List<MMPose> poseData, List<TrajectoryPoint> pointData, List<string> clipNames, List<float> frames)
+    public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames)
     {
 	    if (!AssetDatabase.IsValidFolder(path))
 	    {
@@ -48,19 +48,38 @@ public class CSVHandler
 
             for (int i = 0; i < poseData.Count; i++)
             {
+	            Matrix4x4 charSpace = new Matrix4x4();
+				charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[i].GetRotation(), Vector3.one);
+
                 string[] tempLine =
                 {
                     // General info
                     clipNames[i], frames[i].ToString(spec, ci),
 
                     // Pose data
-                    Mathf.Abs(poseData[i].GetRootVelocity().x).ToString(spec, ci), Mathf.Abs(poseData[i].GetRootVelocity().z).ToString(spec, ci),
-                    Mathf.Abs(poseData[i].GetLefFootVelocity().x).ToString(spec, ci), Mathf.Abs(poseData[i].GetLefFootVelocity().y).ToString(spec, ci), Mathf.Abs(poseData[i].GetLefFootVelocity().z).ToString(spec, ci),
-                    Mathf.Abs(poseData[i].GetRightFootVelocity().x).ToString(spec, ci), Mathf.Abs(poseData[i].GetRightFootVelocity().y).ToString(spec, ci), Mathf.Abs(poseData[i].GetRightFootVelocity().z).ToString(spec, ci), 
+                    poseData[i].GetRootPos().x.ToString(spec, ci),
+                    poseData[i].GetRootPos().z.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).y.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).z.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).y.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).z.ToString(spec, ci),
+					
+                    //poseData[i].GetRootVelocity().x.ToString(spec, ci),
+                    //poseData[i].GetRootVelocity().z.ToString(spec, ci),
+                    //poseData[i].GetLefFootVelocity().x.ToString(spec, ci), 
+                    //poseData[i].GetLefFootVelocity().y.ToString(spec, ci), 
+                    //poseData[i].GetLefFootVelocity().z.ToString(spec, ci),
+                    //poseData[i].GetRightFootVelocity().x.ToString(spec, ci), 
+                    //poseData[i].GetRightFootVelocity().y.ToString(spec, ci), 
+                    //poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
 
                     // TrajectoryPoint data
-                    pointData[i].GetPoint().x.ToString(spec, ci), pointData[i].GetPoint().z.ToString(spec, ci),
-                    pointData[i].GetForward().x.ToString(spec, ci), pointData[i].GetForward().z.ToString(spec, ci),
+                    pointData[i].GetRootPoint().GetPoint().x.ToString(spec, ci), 
+                    pointData[i].GetRootPoint().GetPoint().z.ToString(spec, ci),
+                    pointData[i].GetRootPoint().GetForward().x.ToString(spec, ci), 
+                    pointData[i].GetRootPoint().GetForward().z.ToString(spec, ci)
                 };
 
                 file.WriteLine(string.Join(",", tempLine));

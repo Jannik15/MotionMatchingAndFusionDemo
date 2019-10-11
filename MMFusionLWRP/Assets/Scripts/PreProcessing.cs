@@ -11,7 +11,8 @@ public class PreProcessing
     private List<string> allClipNames;
     private List<float> allFrames;
     private List<MMPose> allPoses;
-    private List<TrajectoryPoint> allPoints;
+    private List<Trajectory> allPoints;
+    private List<Vector3> allRootVels, allLFootVels, allRFootVels;
 
     // --- Variables
     private float sampleRate = 30;
@@ -23,7 +24,7 @@ public class PreProcessing
         allClipNames = new List<string>();
         allFrames = new List<float>();
         allPoses = new List<MMPose>();
-        allPoints = new List<TrajectoryPoint>();
+        allPoints = new List<Trajectory>();
 
         sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
         int i = 0;
@@ -33,12 +34,11 @@ public class PreProcessing
             {
                 allClipNames.Add(clip.name);
                 allFrames.Add(j);
-                Vector3 rootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[0]), GetJointPositionAtFrame(clip, j - 1, jointNames[0]));
-                Vector3 lFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j - 1, jointNames[1]));
-                Vector3 rFootVel = CalculateVelocityFromVectors(GetJointPositionAtFrame(clip, j, jointNames[2]), GetJointPositionAtFrame(clip, j - 1, jointNames[2]));
-
-                allPoses.Add(new MMPose(rootVel, lFootVel, rFootVel));
-                allPoints.Add(new TrajectoryPoint(GetJointPositionAtFrame(clip,j, jointNames[0]), GetJointQuaternionAtFrame(clip,j,jointNames[0]) * Vector3.forward));
+                allPoses.Add(new MMPose(GetJointPositionAtFrame(clip, j, jointNames[0]), 
+	                GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j, jointNames[2])));
+                allPoints.Add(new Trajectory(new TrajectoryPoint(GetJointPositionAtFrame(clip, j, jointNames[0]), 
+	                GetJointQuaternionAtFrame(clip, j, jointNames[0]) * Vector3.forward), // Forward for this point
+	                GetJointQuaternionAtFrame(clip, j, jointNames[0]))); // Quaternion for this point
                 i++;
             }
         }

@@ -2,23 +2,23 @@
 
 public class MMPose
 {
-    private Vector3 rootVel, lFootVel, rFootVel;
-    public MMPose(Vector3 _rootVel, Vector3 _lFootVel, Vector3 _rFootVel)
+    private Vector3 rootPos, lFootPos, rFootPos;
+    public MMPose(Vector3 _rootPos, Vector3 _lFootPos, Vector3 _rFootPos)
     {
-        rootVel = _rootVel;
-        lFootVel = _lFootVel;
-        rFootVel = _rFootVel;
+	    rootPos = _rootPos;
+        lFootPos = _lFootPos;
+        rFootPos = _rFootPos;
     }
-    public Vector3 GetRootVelocity()
+    public Vector3 GetRootPos()
     {
-        return rootVel;
+        return rootPos;
     }
-    public Vector3 GetLefFootVelocity()
+    public Vector3 GetLeftFootPos()
     {
-        return lFootVel;
+        return lFootPos;
     }
-    public Vector3 GetRightFootVelocity()
+    public Vector3 GetRightFootPos()
     {
-        return rFootVel;
+        return rFootPos;
     }
 }
