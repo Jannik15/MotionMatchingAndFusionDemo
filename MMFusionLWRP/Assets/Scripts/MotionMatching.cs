@@ -145,7 +145,7 @@ public class MotionMatching : MonoBehaviour
 
         for (int i = 0; i < featureVectors.Count; i++)
         {
-            if (featureVectors[i].GetID() != currentID && !bannedIDs.Contains(featureVectors[i].GetID()))
+            if (featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < featureVectors[i].GetID() - queryRateInFrames)
             {
                 if (featureVectors[i].GetClipName() == currentClip.name)
                 {
