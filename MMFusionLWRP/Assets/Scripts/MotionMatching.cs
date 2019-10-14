@@ -17,21 +17,19 @@ public class MotionMatching : MonoBehaviour
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
     public string[] jointNames;
 
-    // --- Public 
+    // --- Variables 
     public bool _preProcess;
     public int pointsPerTrajectory = 4;
     public int framesBetweenTrajectoryPoints = 10;
-    [SerializeField] private int queryRateInFrames = 10, bannedIDsLength = 10;
+    [SerializeField] private int queryRateInFrames = 10, candidatesPerMisc;
     [SerializeField] private bool _isMotionMatching, _isIdling;
-    private Queue<int> bannedIDs;
     private List<bool> enumeratorBools;
     private AnimationClip currentClip;
     private int currentFrame, currentID = -1;
 
     // --- Weights
     [Range(0, 1)]
-    public float weightLFootVel = 1, weightRFootVel = 1, weightRootVel = 1;
-    private int trajectoryCandidates;
+    public float weightLFootVel = 1.0f, weightRFootVel = 1.0f, weightRootVel = 1.0f, weightTrajPoints = 1.0f, weightTrajForwards = 1.0f;
 
     private void Awake() // Load animation data
     {
@@ -56,7 +54,6 @@ public class MotionMatching : MonoBehaviour
 #endif
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 		enumeratorBools = AddEnumeratorBoolsToList();
-		bannedIDs = new Queue<int>(bannedIDsLength);
     }
 
     private void Start()
@@ -74,13 +71,13 @@ public class MotionMatching : MonoBehaviour
 		    StartCoroutine(MotionMatch());
 	    }
 		// TODO: Add !isIdling based on movement (velocity?)
-		Debug.Log("Movement base velocity: " + movement.GetMovementVelocity());
-		Debug.Log("Movement divided velocity: " + movement.GetMovementVelocity() / Time.fixedDeltaTime);
+		//Debug.Log("Movement base velocity: " + movement.GetMovementVelocity());
+		//Debug.Log("Movement divided velocity: " + movement.GetMovementVelocity() / Time.fixedDeltaTime);
     }
 
     private void UpdateAnimation(int id, int frame)
     {
-	    for (int i = 0; i < allClips.Length; i++)
+		for (int i = 0; i < allClips.Length; i++)
 	    {
 		    if (allClips[i].name == featureVectors[id].GetClipName())
 		    {
@@ -89,9 +86,7 @@ public class MotionMatching : MonoBehaviour
 		    }
 	    }
 	    currentFrame = frame;
-		bannedIDs.Enqueue(id);
         currentID = id;
-		Debug.Log("Banned ID Queue count: " + bannedIDs.Count);
 		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, currentFrame / currentClip.length); // 0.3f was recommended by Magnus
     }
 
@@ -117,8 +112,9 @@ public class MotionMatching : MonoBehaviour
 	    _isMotionMatching = true;
 	    while (true)
 	    {
-            currentID += queryRateInFrames;
-            List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), trajectoryCandidates);
+			if (currentID + queryRateInFrames < featureVectors.Count)
+				currentID += queryRateInFrames; // TODO: Shouldn't need this, since we shouldn't select a clip at a frame that is higher than frameCount - queryRate
+			List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), candidatesPerMisc);
             int candidateID = PoseMatching(candidates);
 			UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
 		    yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
@@ -145,18 +141,8 @@ public class MotionMatching : MonoBehaviour
         {
             if (featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < featureVectors[i].GetID() - queryRateInFrames)
             {
-                if (featureVectors[i].GetClipName() == currentClip.name)
-                {
-                    if (featureVectors[i].GetID() >= currentID - 10 && featureVectors[i].GetID() < currentID)
-                    {
-                        continue; // Skip this candidate if it belong to the same animation, but at a previous frame
-                    }
-                }
-                if (featureVectors[i].GetTrajectory().CompareTrajectories(movement) +
-                    featureVectors[i].GetTrajectory().CompareTrajectories(movement) < candidatesPerMisc)
+                if (featureVectors[i].GetTrajectory().CompareTrajectories(movement, weightTrajPoints, weightTrajForwards) < candidatesPerMisc)
                 { // TODO: Change to best # (KNN) for each anim type (misc tag, like left, forward, right) instead of threshold
-                    //Debug.Log("TrajComparisonDist: " + featureVectors[i].CompareTrajectoryPoints(movement) +
-                    //          featureVectors[i].CompareTrajectoryForwards(movement));
                     candidates.Add(featureVectors[i]);
                 }
             }
@@ -166,9 +152,8 @@ public class MotionMatching : MonoBehaviour
 
     private int PoseMatching(List<FeatureVector> candidates)
     {
-
-        int bestId = 0;
-        float currentDif = 9999999;
+        int bestId = currentID;
+        float currentDif = float.MaxValue;
 
         foreach (var candidate in candidates)
         {
@@ -176,6 +161,7 @@ public class MotionMatching : MonoBehaviour
             if (candidateDif < currentDif)
             {
                 bestId = candidate.GetID();
+                currentDif = candidateDif;
             }
         }
 
@@ -187,7 +173,7 @@ public class MotionMatching : MonoBehaviour
     {
         float difference = 0;
         
-        if (currentVector.GetID() == 0)
+        if (currentVector.GetFrame() == 0)
             currentVector.CalculateVelocity(featureVectors[currentVector.GetID()].GetPose(), allClips[0].frameRate);
         else
             currentVector.CalculateVelocity(featureVectors[currentVector.GetID() - 1].GetPose(), allClips[0].frameRate);

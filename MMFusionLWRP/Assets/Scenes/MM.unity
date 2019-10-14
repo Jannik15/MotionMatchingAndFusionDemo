@@ -481,6 +481,16 @@ MonoBehaviour:
   _preProcess: 1
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
+  queryRateInFrames: 10
+  bannedIDsLength: 10
+  candidatesPerMisc: 500
+  _isMotionMatching: 0
+  _isIdling: 0
+  weightLFootVel: 1
+  weightRFootVel: 1
+  weightRootVel: 1
+  weightTrajPositions: 1
+  weightTrajForwards: 1
 --- !u!114 &1861943230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -495,6 +505,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTime: 1
   movementSpeed: 0.1
+  joyMovementSpeed: 0
 --- !u!1 &2016575769
 GameObject:
   m_ObjectHideFlags: 0
