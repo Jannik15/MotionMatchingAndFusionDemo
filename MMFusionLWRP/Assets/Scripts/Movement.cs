@@ -35,6 +35,11 @@ public class Movement : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + transform.forward);
     }
 
+    public Trajectory GetMovementTrajectory()
+    {
+
+    }
+
     public Vector3 GetMovementVelocity()
     {
 	    return (transform.position - prevPos) / Time.fixedDeltaTime;
