@@ -66,16 +66,29 @@ public class MotionMatching : MonoBehaviour
         StartCoroutine(MotionMatch());
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
 	    if (!_isMotionMatching)
 	    {
 			StopAllCoroutines();
 		    StartCoroutine(MotionMatch());
 	    }
-		// TODO: Add !isIdling based on movement (velocity?)
-		Debug.Log("Movement base velocity: " + movement.GetMovementVelocity());
-		Debug.Log("Movement divided velocity: " + movement.GetMovementVelocity() / Time.fixedDeltaTime);
+        // TODO: Add !isIdling based on movement (velocity?)
+        //Debug.Log("Movement base velocity: " + movement.GetMovementVelocity());
+        //Debug.Log("Movement divided velocity: " + movement.GetMovementVelocity() / Time.fixedDeltaTime);
+
+        //float tempPlayerSpeed = (transform.position - prevLocation).magnitude / Time.deltaTime;
+        //if (tempPlayerSpeed < 0.15f)
+        //{
+        //    currentPlayerSpeed = 0;
+        //}
+        //else
+        //{
+        //    currentPlayerSpeed = tempPlayerSpeed;
+        //}
+
+        //prevLocation = transform.position;
+
     }
 
     private void UpdateAnimation(int id, int frame)
@@ -91,7 +104,7 @@ public class MotionMatching : MonoBehaviour
 	    currentFrame = frame;
 		bannedIDs.Enqueue(id);
         currentID = id;
-		Debug.Log("Banned ID Queue count: " + bannedIDs.Count);
+		//Debug.Log("Banned ID Queue count: " + bannedIDs.Count);
 		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, currentFrame / currentClip.length); // 0.3f was recommended by Magnus
     }
 
@@ -121,7 +134,7 @@ public class MotionMatching : MonoBehaviour
             List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), trajectoryCandidates);
             int candidateID = PoseMatching(candidates);
 			UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
-		    yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
+            yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
 	    }
     }
 
@@ -169,7 +182,7 @@ public class MotionMatching : MonoBehaviour
 
         int bestId = 0;
         float currentDif = 9999999;
-
+        //Debug.Log(candidates.Count);
         foreach (var candidate in candidates)
         {
             float candidateDif = ComparePoses(featureVectors[currentID], candidate);
@@ -187,7 +200,7 @@ public class MotionMatching : MonoBehaviour
     {
         float difference = 0;
         
-        if (currentVector.GetID() == 0)
+        if ((int)currentVector.GetFrame() == 0)
             currentVector.CalculateVelocity(featureVectors[currentVector.GetID()].GetPose(), allClips[0].frameRate);
         else
             currentVector.CalculateVelocity(featureVectors[currentVector.GetID() - 1].GetPose(), allClips[0].frameRate);
@@ -196,6 +209,7 @@ public class MotionMatching : MonoBehaviour
         difference += Vector3.Distance(currentVector.GetRightFootVelocity() * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);
         difference += Vector3.Distance(currentVector.GetRootVelocity() * weightRootVel, candidateVector.GetRootVelocity() * weightRootVel);
 
+        //Debug.Log(difference);
         return difference;
     }
 
