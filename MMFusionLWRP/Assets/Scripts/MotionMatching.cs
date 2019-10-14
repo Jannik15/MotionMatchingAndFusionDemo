@@ -25,7 +25,7 @@ public class MotionMatching : MonoBehaviour
     [SerializeField] private bool _isMotionMatching, _isIdling;
     private List<bool> enumeratorBools;
     private AnimationClip currentClip;
-    private int currentFrame, currentID = -1;
+    private int currentFrame, currentID = 0;
 
     // --- Weights
     [Range(0, 1)]
@@ -66,7 +66,7 @@ public class MotionMatching : MonoBehaviour
     private void Start()
     {
         // --- Instantiation
-        currentClip = allClips[0];
+		UpdateAnimation(0, 0);
         StartCoroutine(MotionMatch());
     }
 
@@ -77,26 +77,11 @@ public class MotionMatching : MonoBehaviour
 			StopAllCoroutines();
 		    StartCoroutine(MotionMatch());
 	    }
-        // TODO: Add !isIdling based on movement (velocity?)
-        //Debug.Log("Movement base velocity: " + movement.GetMovementVelocity());
-        //Debug.Log("Movement divided velocity: " + movement.GetMovementVelocity() / Time.fixedDeltaTime);
-
-        //float tempPlayerSpeed = (transform.position - prevLocation).magnitude / Time.deltaTime;
-        //if (tempPlayerSpeed < 0.15f)
-        //{
-        //    currentPlayerSpeed = 0;
-        //}
-        //else
-        //{
-        //    currentPlayerSpeed = tempPlayerSpeed;
-        //}
-
-        //prevLocation = transform.position;
-        
     }
 
     private void UpdateAnimation(int id, int frame)
     {
+		Debug.Log("Updating animation (ID): "+ currentID + " -> " + id);
 		for (int i = 0; i < allClips.Length; i++)
 	    {
 		    if (allClips[i].name == featureVectors[id].GetClipName())
@@ -104,10 +89,12 @@ public class MotionMatching : MonoBehaviour
 			    currentClip = allClips[i];
 			    break;
 		    }
-	    }
-	    currentFrame = frame;
+		}
+		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, frame / currentClip.length); // 0.3f was recommended by Magnus
+        animator.Play("New State");
         currentID = id;
-		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, currentFrame / currentClip.length); // 0.3f was recommended by Magnus
+        currentFrame = frame;
+        int temp = Mathf.Abs(frame - currentFrame);
     }
 
     #region IEnumerators
@@ -155,16 +142,12 @@ public class MotionMatching : MonoBehaviour
     List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
-
 		for (int i = 0; i < featureVectors.Count; i++)
 		{
-            if ((featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < featureVectors[i].GetID() - queryRateInFrames) &&
-                i + queryRateInFrames < featureVectors[i].GetFrameCountForID())
-            {
-                if (featureVectors[i].GetTrajectory().CompareTrajectories(movement, weightTrajPoints, weightTrajForwards) < candidatesPerMisc)
-                { // TODO: Change to best # (KNN) for each anim type (misc tag, like left, forward, right) instead of threshold
-                    candidates.Add(featureVectors[i]);
-                }
+            if ((featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < currentID - queryRateInFrames) &&
+                featureVectors[i].GetFrame() + queryRateInFrames <= featureVectors[i].GetFrameCountForID())
+            { // TODO: Take KNN candidates for each animation 
+	            candidates.Add(featureVectors[i]);
             }
         }
         return candidates;
@@ -172,14 +155,16 @@ public class MotionMatching : MonoBehaviour
 
     private int PoseMatching(List<FeatureVector> candidates)
     {
-        int bestId = currentID;
+        int bestId = -1;
         float currentDif = float.MaxValue;
 
         foreach (var candidate in candidates)
         {
-            float candidateDif = ComparePoses(featureVectors[currentID], candidate);
+	        float candidateDif = featureVectors[currentID].ComparePoses(candidate, allClips[0].frameRate,
+		        weightLFootVel, weightRFootVel, weightRootVel);
             if (candidateDif < currentDif)
             {
+				//Debug.Log("Candidate diff: " + candidateDif + " < " + " Current diff:" + currentDif);
                 bestId = candidate.GetID();
                 currentDif = candidateDif;
             }
@@ -187,23 +172,6 @@ public class MotionMatching : MonoBehaviour
 
         return bestId;
 
-    }
-
-    private float ComparePoses(FeatureVector currentVector, FeatureVector candidateVector)
-    {
-        float difference = 0;
-        
-        if ((int)currentVector.GetFrame() == 0)
-            currentVector.CalculateVelocity(featureVectors[currentVector.GetID()].GetPose(), allClips[0].frameRate);
-        else
-            currentVector.CalculateVelocity(featureVectors[currentVector.GetID() - 1].GetPose(), allClips[0].frameRate);
- 
-        difference += Vector3.Distance(currentVector.GetLeftFootVelocity() * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
-        difference += Vector3.Distance(currentVector.GetRightFootVelocity() * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);
-        difference += Vector3.Distance(currentVector.GetRootVelocity() * weightRootVel, candidateVector.GetRootVelocity() * weightRootVel);
-
-        //Debug.Log(difference);
-        return difference;
     }
 
     private void SaveAllAnimClipsToContainer(AnimationClip[] animClips)
