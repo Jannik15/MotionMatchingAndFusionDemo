@@ -169,7 +169,7 @@ public class MotionMatching : MonoBehaviour
 
         foreach (var candidate in candidates)
         {
-            float candidateDif = ComparePoses(featureVectors[currentID].GetPose(), candidate.GetPose());
+            float candidateDif = ComparePoses(featureVectors[currentID], candidate);
             if (candidateDif < currentDif)
             {
                 bestId = candidate.GetID();
@@ -180,12 +180,18 @@ public class MotionMatching : MonoBehaviour
 
     }
 
-    private float ComparePoses(MMPose currentPose, MMPose candidatePose)
+    private float ComparePoses(FeatureVector currentVector, FeatureVector candidateVector)
     {
         float difference = 0;
-        difference += Vector3.Distance(currentPose.GetLefFootVelocity() * weightLFootVel, candidatePose.GetLefFootVelocity() * weightLFootVel);
-        difference += Vector3.Distance(currentPose.GetRightFootVelocity() * weightRFootVel, candidatePose.GetRightFootVelocity() * weightRFootVel);
-        difference += Vector3.Distance(currentPose.GetRootVelocity() * weightRootVel, candidatePose.GetRootVelocity() * weightRootVel);
+        
+        if (currentVector.GetID() == 0)
+            currentVector.CalculateVelocity(featureVectors[currentVector.GetID()].GetPose(), allClips[0].frameRate);
+        else
+            currentVector.CalculateVelocity(featureVectors[currentVector.GetID() - 1].GetPose(), allClips[0].frameRate);
+ 
+        difference += Vector3.Distance(currentVector.GetLeftFootVelocity() * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
+        difference += Vector3.Distance(currentVector.GetRightFootVelocity() * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);
+        difference += Vector3.Distance(currentVector.GetRootVelocity() * weightRootVel, candidateVector.GetRootVelocity() * weightRootVel);
 
         return difference;
     }
