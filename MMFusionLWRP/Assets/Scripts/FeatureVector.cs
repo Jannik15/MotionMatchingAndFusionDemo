@@ -5,6 +5,7 @@ public class FeatureVector
 	private int id;
 	private string clipName;
 	private float frame;
+	private int allFrames;
     private MMPose pose;
     private Trajectory trajectory;
     private Vector3 rootVel, lFootVel, rFootVel;
@@ -16,6 +17,11 @@ public class FeatureVector
         id = _id;
         clipName = _clipName;
         frame = _frame;
+    }
+
+    public void SetFrameCount(int frameCountForID)
+    {
+	    allFrames = frameCountForID;
     }
 
     public MMPose GetPose()
@@ -37,6 +43,10 @@ public class FeatureVector
     public float GetFrame()
     {
         return frame;
+    }
+    public int GetFrameCountForID()
+    {
+	    return allFrames;
     }
 
     public Vector3 GetRootVelocity()

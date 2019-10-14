@@ -40,10 +40,7 @@ public class MotionMatching : MonoBehaviour
         if (animContainer != null)
             allClips = animContainer.animationClips;
         if (allClips == null)
-        {
             Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
-            return;
-        }
 
 #if UNITY_EDITOR
         if (_preProcess)
@@ -53,7 +50,17 @@ public class MotionMatching : MonoBehaviour
         }
 #endif
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
-		enumeratorBools = AddEnumeratorBoolsToList();
+
+        for (int i = 0; i < allClips.Length; i++)
+        {
+            int frames = (int) (allClips[i].length * allClips[i].frameRate);
+	        for (int j = 0; j < featureVectors.Count; j++)
+	        {
+				if (featureVectors[j].GetClipName() == allClips[i].name)
+					featureVectors[j].SetFrameCount(frames);
+	        }
+        }
+        enumeratorBools = AddEnumeratorBoolsToList();
     }
 
     private void Start()
@@ -112,9 +119,8 @@ public class MotionMatching : MonoBehaviour
 	    _isMotionMatching = true;
 	    while (true)
 	    {
-			if (currentID + queryRateInFrames < featureVectors.Count)
-				currentID += queryRateInFrames; // TODO: Shouldn't need this, since we shouldn't select a clip at a frame that is higher than frameCount - queryRate
-			List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), candidatesPerMisc);
+		    currentID += queryRateInFrames;
+            List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), candidatesPerMisc);
             int candidateID = PoseMatching(candidates);
 			UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
 		    yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
@@ -137,9 +143,10 @@ public class MotionMatching : MonoBehaviour
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
 
-        for (int i = 0; i < featureVectors.Count; i++)
-        {
-            if (featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < featureVectors[i].GetID() - queryRateInFrames)
+		for (int i = 0; i < featureVectors.Count; i++)
+		{
+            if ((featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < featureVectors[i].GetID() - queryRateInFrames) &&
+                i + queryRateInFrames < featureVectors[i].GetFrameCountForID())
             {
                 if (featureVectors[i].GetTrajectory().CompareTrajectories(movement, weightTrajPoints, weightTrajForwards) < candidatesPerMisc)
                 { // TODO: Change to best # (KNN) for each anim type (misc tag, like left, forward, right) instead of threshold

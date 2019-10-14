@@ -52,9 +52,16 @@ public class Movement : MonoBehaviour
 		for (int i = 0; i < points.Length; i++)
 		{
 			if (i > 0)
-				points[i] = new TrajectoryPoint();
+			{
+				// Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
+				Quaternion lookRotation = transform.position + transform.forward != Vector3.zero
+					? Quaternion.LookRotation(transform.position + transform.forward) : Quaternion.identity; // Shorthand if : else
+
+				points[i] = new TrajectoryPoint(points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward,
+					(points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward - points[i-1].GetPoint()).normalized);
+			}
 			else
-				points[i] = new TrajectoryPoint(transform.position, transform.forward);
+				points[i] = new TrajectoryPoint();
 		}
 		return new Trajectory(points);
     }
