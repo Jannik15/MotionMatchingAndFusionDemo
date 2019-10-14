@@ -15,7 +15,7 @@ public class Movement : MonoBehaviour
 
     private string movementType;
 
-    private void Start()
+    private void Awake()
     {
 	    mm = GetComponent<MotionMatching>();
     }

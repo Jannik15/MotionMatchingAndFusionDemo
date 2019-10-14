@@ -13,6 +13,7 @@ public class PreProcessing
     private List<MMPose> allPoses;
     private List<Trajectory> allPoints;
     private List<Vector3> allRootVels, allLFootVels, allRFootVels;
+    private float debug;
 
     // --- Variables
     private float sampleRate = 30;
@@ -27,7 +28,6 @@ public class PreProcessing
         allPoints = new List<Trajectory>();
 
         sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
-        int i = 0;
         foreach (var clip in allClips)
         {
             for (int j = 0; j < (int)clip.length * clip.frameRate; j++)
@@ -39,7 +39,6 @@ public class PreProcessing
                 allPoints.Add(new Trajectory(new TrajectoryPoint(GetJointPositionAtFrame(clip, j, jointNames[0]), 
 	                GetJointQuaternionAtFrame(clip, j, jointNames[0]) * Vector3.forward), // Forward for this point
 	                GetJointQuaternionAtFrame(clip, j, jointNames[0]))); // Quaternion for this point
-                i++;
             }
         }
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
@@ -79,9 +78,11 @@ public class PreProcessing
 		    {
 			    curve = AnimationUtility.GetEditorCurve(clip, binding);
 			    vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
+			    debug = frame / clip.frameRate;
 			    arrayEnumerator++;
 		    }
 	    }
+		Debug.Log(debug + ": " + clip.name + ".Q: x=" + vectorValues[0] + ", y=" + vectorValues[1] + ", z=" + vectorValues[2] + ", w=" + vectorValues[3]);
 	    return new Quaternion(vectorValues[0], vectorValues[1], vectorValues[2], vectorValues[3]);
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
