@@ -38,17 +38,19 @@ public class MotionMatching : MonoBehaviour
 	    movement = GetComponent<Movement>();
 	    animator = GetComponent<Animator>();
         preProcessing = new PreProcessing();
+
+        if (animContainer != null)
+            allClips = animContainer.animationClips;
+        if (allClips == null)
+        {
+            Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
+            return;
+        }
+
 #if UNITY_EDITOR
         if (_preProcess)
         {
-            if (animContainer != null)
-                allClips = animContainer.animationClips;
-            if (allClips == null)
-            {
-                Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
-                return;
-            }
-
+            animContainer.animationClips = preProcessing.FindClipsFromAnimatorController();
             preProcessing.Preprocess(allClips, jointNames);
         }
 #endif
