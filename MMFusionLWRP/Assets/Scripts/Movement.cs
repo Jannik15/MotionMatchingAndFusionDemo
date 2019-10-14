@@ -4,10 +4,21 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-	public float lerpTime = 1, movementSpeed = 0.01f, joyMovementSpeed;
-	private Vector3 prevPos, goalPos;
+    // --- References
+    private MotionMatching mm;
+
+	// --- Public
+    public float lerpTime = 1, movementSpeed = 0.01f, joyMovementSpeed;
+
+    // --- Private 
+    private Vector3 prevPos, goalPos;
 
     private string movementType;
+
+    private void Start()
+    {
+	    mm = GetComponent<MotionMatching>();
+    }
     private void FixedUpdate()
     {
         switch(movementType) {
@@ -33,6 +44,19 @@ public class Movement : MonoBehaviour
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawLine(transform.position, transform.position + transform.forward);
+    }
+
+    public Trajectory GetMovementTrajectory()
+    {
+		TrajectoryPoint[] points = new TrajectoryPoint[mm.pointsPerTrajectory];
+		for (int i = 0; i < points.Length; i++)
+		{
+			if (i > 0)
+				points[i] = new TrajectoryPoint();
+			else
+				points[i] = new TrajectoryPoint(transform.position, transform.forward);
+		}
+		return new Trajectory(points);
     }
 
     public Vector3 GetMovementVelocity()
