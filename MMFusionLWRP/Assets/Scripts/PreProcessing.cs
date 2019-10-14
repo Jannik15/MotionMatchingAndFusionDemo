@@ -90,7 +90,7 @@ public class PreProcessing
         return (currentPos - prevPos) * sampleRate;
     }
 
-    private AnimationClip[] FindClipsFromAnimatorController()
+    public AnimationClip[] FindClipsFromAnimatorController()
     {
         if (GameObject.FindGameObjectWithTag("Player") == null)
             return null;
