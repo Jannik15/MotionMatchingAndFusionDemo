@@ -62,6 +62,7 @@ public class MotionMatching : MonoBehaviour
     private void Start()
     {
         // --- Instantiation
+        currentClip = allClips[0];
         StartCoroutine(MotionMatch());
     }
 
