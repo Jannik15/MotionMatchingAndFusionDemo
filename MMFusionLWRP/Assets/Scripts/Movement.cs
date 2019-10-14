@@ -18,10 +18,10 @@ public class Movement : MonoBehaviour
 
     private string movementType;
 
+
     private void Awake()
     {
 	    mm = GetComponent<MotionMatching>();
-        playerRB = GetComponent<Rigidbody>();
         
     }
     private void FixedUpdate()
