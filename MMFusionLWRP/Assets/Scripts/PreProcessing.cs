@@ -101,13 +101,18 @@ public class PreProcessing
         {
             for (int j = 0; j < differentTags.Length; j++)
             {
-                if (allClips[i].name.Contains(differentTags[j]))
+                if (allClips[i].name.ToLower().Contains(differentTags[j].ToLower()))
                 {
-                    tempClipTags[i] += "#" + differentTags;
+                    tempClipTags[i] += "#" + differentTags[j];
                 }
             }
-        }
 
+            if (tempClipTags[i] == null)
+            {
+                tempClipTags[i] = "NoTag";
+            }
+        }
+        Debug.Log(tempClipTags[0]);
         return tempClipTags;
     }
 

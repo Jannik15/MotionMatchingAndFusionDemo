@@ -16,9 +16,9 @@ public class MotionMatching : MonoBehaviour
     private AnimationClip[] allClips;
     private string[] allClipTags;
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
-    public Cliptags tagContainer; // put ref to chosen tag container scriptable object
+    public ClipTags tagContainer; // put ref to chosen tag container scriptable object
     public string[] jointNames;
-    public static string[] movementTag = {"idle", "walk", "run"};
+    public static string[] movementTag = {"Idle", "Walk", "Run"};
 
     // --- Variables 
     public bool _preProcess;
