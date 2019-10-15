@@ -4,30 +4,25 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-
-    // For every variable used, make a scriptableObject with the type. So make a scriptable object script that takes a single float,
-    // For every data type, have a TypeReference for the scriptableObject. Create new SOs through asset menu for each variable here. 
     // --- References
     private MotionMatching mm;
 
 	// --- Public
-    public float lerpTime = 1, movementSpeed = 0.01f;
+    public float lerpTime = 1, movementSpeed = 0.01f, joyMovementSpeed, speed;
 
     // --- Private 
-    private Vector3 prevPos, goalPos, direction;
+    private Vector3 prevPos, goalPos;
 
     private string movementType;
-
 
     private void Awake()
     {
 	    mm = GetComponent<MotionMatching>();
-        
     }
     private void FixedUpdate()
     {
-        
-        switch(movementType) {
+	    UpdateSpeed();
+        switch (movementType) {
             case "wasd":
                 KeyBoardMove();
                 break;
@@ -36,23 +31,26 @@ public class Movement : MonoBehaviour
                 ClickAndDrag();
                 break;
 
-             case "moveToPoint":
+            case "moveToPoint":
                 MoveToMouse();
-                break; 
+                break;
 
             default:
                 movementType = "wasd";
                 //Debug.Log("Unknown movetype");
                 break;
         }
-        if(Input.GetKeyDown("o")) {
-            ChangeMovement();
-        }
     }
-    private void OnDrawGizmos()
+
+    private void UpdateSpeed()
     {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(transform.position, transform.position + transform.forward);
+	    speed = (transform.position - prevPos).magnitude / Time.fixedDeltaTime;
+	    prevPos = transform.position;
+    }
+
+    public float GetSpeed()
+    {
+	    return speed;
     }
 
     public Trajectory GetMovementTrajectory()
@@ -64,13 +62,14 @@ public class Movement : MonoBehaviour
 			{
 				// Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
 				Quaternion lookRotation = transform.position + transform.forward != Vector3.zero
-					? Quaternion.LookRotation(transform.position + transform.forward) : Quaternion.identity; // Shorthand if : else
+					? Quaternion.LookRotation((transform.position + transform.forward)) : Quaternion.identity; // Shorthand if : else
 
-				points[i] = new TrajectoryPoint(points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward,
-					(points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward - points[i-1].GetPoint()).normalized);
+				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
+				Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
+                points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}
 			else
-				points[i] = new TrajectoryPoint();
+				points[i] = new TrajectoryPoint(transform.position, transform.position + transform.forward);
 		}
 		return new Trajectory(points);
     }
@@ -87,61 +86,22 @@ public class Movement : MonoBehaviour
 	    transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
     }
     public void MoveToMouse() {
-        if(Input.GetMouseButtonDown(0)) {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if(Physics.Raycast(ray, out hit)) { 
-                goalPos = hit.point;
-            }
+        if(Input.GetMouseButton(0)) {
+            goalPos = Input.mousePosition;
+            transform.LookAt(goalPos);
+            transform.position = Vector3.Lerp(transform.position, goalPos, movementSpeed*Time.deltaTime);
         }
-        // Need some way to reset, or tell if other functions affected goalPos. Or reset this goalPos when you change.
-            if(Vector3.Distance(transform.position, goalPos) > 0.2f) {
-                    transform.LookAt(goalPos);
-                    transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed * 5) * Time.deltaTime);
-            }
-                
-            
-        
-
-
     }
 
     public void ClickAndDrag() {
-        if(Input.GetMouseButton(0)) {
-            //goalPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, 0, Input.mousePosition.y));
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            //Vector3 middleScreen = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width/2, transform.position.y, Screen.height/2));
-            
-            if(Physics.Raycast(ray, out hit)) {
-                //Debug.Log(hit.point.x + hit.point.z);
-                //Vector3 direction = hit.point - transform.position;
-                //direction.y = 0;
-                transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
-                transform.position = Vector3.Lerp(transform.position, hit.point, (movementSpeed * 5 ) * Time.deltaTime);
-            }
+        // Centered on player character/ middle of screen.
+        // Could work with Vector3.Distance(transform.position, Input.MousePosition);
+        // moveSpeed increments with the Distance, maybe addForce?
 
-        }        
-    }
+        goalPos = Input.mousePosition;
+        transform.LookAt(goalPos);
+        joyMovementSpeed = movementSpeed * (Vector3.Distance(transform.position, goalPos) / 2);
+        transform.position = Vector3.Lerp(transform.position, goalPos, movementSpeed * Time.deltaTime);
 
-    public void ChangeMovement() {
-            if(movementType == "wasd") {
-                movementType = "joystick";
-                Debug.Log("Movement type is: " + movementType);
-                
-            }
-
-            else if(movementType == "joystick") {
-                movementType = "moveToPoint";
-                Debug.Log("Movement type is: " + movementType);
-
-                
-            }
-            else if(movementType == "moveToPoint") {
-                movementType = "wasd";
-                Debug.Log("Movement type is: " + movementType);
-                
-            }
-        
     }
 }

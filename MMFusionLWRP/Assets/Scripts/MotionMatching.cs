@@ -22,13 +22,10 @@ public class MotionMatching : MonoBehaviour
 
     // --- Variables 
     public bool _preProcess;
-    public int pointsPerTrajectory = 4;
-    public int framesBetweenTrajectoryPoints = 10;
+    public int pointsPerTrajectory = 4, framesBetweenTrajectoryPoints = 10;
     [SerializeField] private int queryRateInFrames = 10, candidatesPerMisc;
     [SerializeField] private bool _isMotionMatching, _isIdling;
-    public float isIdleThreshold = 0.10f;
-    private bool isIdle = true;
-    private Vector3 prevPosition;
+    public float idleThreshold = 0.10f;
     private List<bool> enumeratorBools;
     private AnimationClip currentClip;
     private int currentFrame, currentID = 0;
@@ -79,37 +76,40 @@ public class MotionMatching : MonoBehaviour
         // --- Instantiation
 		UpdateAnimation(0, 0);
         StartCoroutine(MotionMatch());
-        prevPosition = transform.position;
     }
 
     private void FixedUpdate()
     {
-	    if (!_isMotionMatching)
+	    if (!_isMotionMatching && movement.GetSpeed() > idleThreshold)
 	    {
 			StopAllCoroutines();
 		    StartCoroutine(MotionMatch());
 	    }
-        if (!_isIdling)
-        {
-            StopAllCoroutines();
-            StartCoroutine(Idle());
-        }
+        //if (!_isIdling  && movement.GetSpeed() <= idleThreshold)
+        //{
+        //    StopAllCoroutines();
+        //    StartCoroutine(Idle());
+        //}
+    }
 
-        float tempPlayerSpeed = (transform.position - prevPosition).magnitude / Time.fixedDeltaTime;
-        if (tempPlayerSpeed < isIdleThreshold && isIdle == false)
-        {
-            _isMotionMatching = true;
-            _isIdling = false;
-            isIdle = true;
-        }
-        else if (tempPlayerSpeed > isIdleThreshold && isIdle == true)
-        {
-            _isMotionMatching = true;
-            _isIdling = false;
-            isIdle = false;
-        }
+    private void OnDrawGizmos()
+    {
+	    if (Application.isPlaying)
+	    {
+		    for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++)
+		    {
+				// Position
+			    Gizmos.color = Color.red;
+                //Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+                Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
+	                movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
-        prevPosition = transform.position;
+                // Forward
+			    Gizmos.color = Color.blue;
+				Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 
+					movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
+		    }
+        }
     }
 
     private void UpdateAnimation(int id, int frame)
@@ -124,10 +124,8 @@ public class MotionMatching : MonoBehaviour
 		    }
 		}
 		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, frame / currentClip.length); // 0.3f was recommended by Magnus
-        animator.Play("New State");
         currentID = id;
         currentFrame = frame;
-        int temp = Mathf.Abs(frame - currentFrame);
     }
 
     #region IEnumerators
@@ -142,13 +140,10 @@ public class MotionMatching : MonoBehaviour
     private void SetBoolsInList(List<bool> list, bool booleanVal)
     {
 	    for (int i = 0; i < list.Count; i++)
-	    {
 		    list[i] = booleanVal;
-	    }
     }
     private IEnumerator MotionMatch()
     {
-
         SetBoolsInList(enumeratorBools, false);
 	    _isMotionMatching = true;
 	    while (true)
@@ -165,7 +160,6 @@ public class MotionMatching : MonoBehaviour
     {
         SetBoolsInList(enumeratorBools, false);
         _isIdling = true;
-
         while (true)
 	    {
             int candidateID = PoseMatching(featureVectors);
@@ -173,7 +167,6 @@ public class MotionMatching : MonoBehaviour
             yield return new WaitForSeconds((currentFrame - currentClip.length) / currentClip.frameRate);
 	    }
     }
-
     #endregion
 
     List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
@@ -207,9 +200,7 @@ public class MotionMatching : MonoBehaviour
                 currentDif = candidateDif;
             }
         }
-
         return bestId;
-
     }
 
 }
