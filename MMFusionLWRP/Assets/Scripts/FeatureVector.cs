@@ -5,6 +5,7 @@ public class FeatureVector
 	private int id;
 	private string clipName;
 	private float frame;
+	private int allFrames;
     private MMPose pose;
     private Trajectory trajectory;
     private Vector3 rootVel, lFootVel, rFootVel;
@@ -16,6 +17,11 @@ public class FeatureVector
         id = _id;
         clipName = _clipName;
         frame = _frame;
+    }
+
+    public void SetFrameCount(int frameCountForID)
+    {
+	    allFrames = frameCountForID;
     }
 
     public MMPose GetPose()
@@ -37,6 +43,10 @@ public class FeatureVector
     public float GetFrame()
     {
         return frame;
+    }
+    public int GetFrameCountForID()
+    {
+	    return allFrames;
     }
 
     public Vector3 GetRootVelocity()
@@ -74,5 +84,36 @@ public class FeatureVector
 	    rootVel = (pose.GetRootPos() - previousPose.GetRootPos()) * sampleRate;
 		lFootVel = (pose.GetLeftFootPos() - previousPose.GetLeftFootPos()) * sampleRate;
 		rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
+    }
+
+    public float ComparePoses(FeatureVector candidateVector, float sampleRate)
+    {
+	    float difference = 0;
+
+	    if (frame != 0 && (lFootVel.x < Mathf.Epsilon && lFootVel.y < Mathf.Epsilon && lFootVel.z < Mathf.Epsilon))
+	    {
+		    CalculateVelocity(candidateVector.pose, sampleRate);
+        }
+
+        difference += Vector3.Distance(lFootVel, candidateVector.GetLeftFootVelocity());
+	    difference += Vector3.Distance(rFootVel, candidateVector.GetRightFootVelocity());
+	    difference += Vector3.Distance(rootVel, candidateVector.GetRootVelocity());
+
+	    return difference;
+    }
+    public float ComparePoses(FeatureVector candidateVector, float sampleRate, float weightLFootVel, float weightRFootVel, float weightRootVel)
+    {
+	    float difference = 0;
+
+	    if (frame != 0 && (lFootVel.x < Mathf.Epsilon && lFootVel.y < Mathf.Epsilon && lFootVel.z < Mathf.Epsilon))
+	    {
+		    CalculateVelocity(candidateVector.pose, sampleRate);
+	    }
+
+        difference += Vector3.Distance(lFootVel * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
+	    difference += Vector3.Distance(rFootVel * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);
+	    difference += Vector3.Distance(rootVel * weightRootVel, candidateVector.GetRootVelocity() * weightRootVel);
+
+	    return difference;
     }
 }

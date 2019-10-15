@@ -88,7 +88,6 @@ public class PreProcessing
 			    arrayEnumerator++;
 		    }
 	    }
-		Debug.Log(debug + ": " + clip.name + ".Q: x=" + vectorValues[0] + ", y=" + vectorValues[1] + ", z=" + vectorValues[2] + ", w=" + vectorValues[3]);
 	    return new Quaternion(vectorValues[0], vectorValues[1], vectorValues[2], vectorValues[3]);
     }
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TrajectoryPoint
 {
-    private Vector3 point, forward;
+    public Vector3 point, forward;
     public TrajectoryPoint()
     {
         point = Vector3.zero;
