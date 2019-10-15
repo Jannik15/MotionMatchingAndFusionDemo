@@ -21,6 +21,8 @@ public class Movement : MonoBehaviour
     // --- Private 
     private Vector3 prevPos, goalPos;
 
+    private float speed;
+
     private string movementType;
 
     private void Awake()
@@ -51,6 +53,10 @@ public class Movement : MonoBehaviour
                 movementType = "wasd";
                 //Debug.Log("Unknown movetype");
                 break;
+        }
+
+        if(Input.GetKeyDown("o")) {
+            ChangeMovement();
         }
     }
 
@@ -98,15 +104,17 @@ public class Movement : MonoBehaviour
 	    transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
     }
     public void MoveToMouse() {
-        if(Input.GetMouseButton(0)) {
-            goalPos = Input.mousePosition;
-            transform.LookAt(goalPos);
-            transform.position = Vector3.Lerp(transform.position, goalPos, movementSpeed*Time.deltaTime);
+        if(Input.GetMouseButtonDown(0)) {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if(Physics.Raycast(ray, out hit)) {
+                goalPos = hit.point;
+            }
         }
-        // Need some way to reset, or tell if other functions affected goalPos. Or reset this goalPos when you change.
+        
             if(Vector3.Distance(transform.position, goalPos) > 0.2f) {
                     transform.LookAt(goalPos);
-                    // The movementSpeed value here should not be multiplied, but if movementSpeed is changed, KeyBoardMove might be too fast. 
                     transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.deltaTime);
             }
                 
@@ -118,24 +126,32 @@ public class Movement : MonoBehaviour
 
     public void ClickAndDrag() {
         if(Input.GetMouseButton(0)) {
-            //goalPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, 0, Input.mousePosition.y));
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            //Vector3 middleScreen = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width/2, transform.position.y, Screen.height/2));
-            
             if(Physics.Raycast(ray, out hit)) {
-                //Debug.Log(hit.point.x + hit.point.z);
-                //Vector3 direction = hit.point - transform.position;
-                //direction.y = 0;
                 goalPos = hit.point;
                 transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
                 transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value ) * Time.deltaTime);
             }
 
-        goalPos = Input.mousePosition;
-        transform.LookAt(goalPos);
-        joyMovementSpeed = movementSpeed * (Vector3.Distance(transform.position, goalPos) / 2);
-        transform.position = Vector3.Lerp(transform.position, goalPos, movementSpeed * Time.deltaTime);
-
+        }
     }
+
+    public void ChangeMovement() {
+        if(movementType == "wasd") {
+            movementType = "joystick";
+            Debug.Log("Movement type is: " + movementType);
+        }
+
+        else if(movementType == "joystick") {
+            movementType = "moveToPoint";
+            Debug.Log("Movement type is: " + movementType);
+        }
+
+        else if(movementType == "moveToPoint") {
+            movementType = "wasd";
+            Debug.Log("Movement type is: " + movementType);
+        }
+    }
+
 }
