@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -41,7 +42,9 @@ public class PreProcessing
 	                GetJointQuaternionAtFrame(clip, j, jointNames[0]))); // Quaternion for this point
             }
         }
+
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
+        
     }
     public List<FeatureVector> LoadData(int pointsPerTrajectory, int framesBetweenTrajectoryPoints)
     {
@@ -51,11 +54,6 @@ public class PreProcessing
         return featureVector;
     }
 
-    //public List<FeatureVector> LoadData(string label)
-    //{
-    //    List<FeatureVector> idleFeatureVector = csvHandler.ReadCSV(); // :TODO YYY - Finish this
-    //    return idleFeatureVector;
-    //}
     public Vector3 GetJointPositionAtFrame(AnimationClip clip, int frame, string jointName)
     {
         // Bindings are inherited from a clip, and the AnimationCurve is inherited from the clip's binding
@@ -93,6 +91,29 @@ public class PreProcessing
     public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
     {
         return (currentPos - prevPos) * sampleRate;
+    }
+
+    public string[] GenerateClipTags(AnimationClip[] allClips, string[] differentTags)
+    {
+        string[] tempClipTags = new string[allClips.Length];
+
+        for (int i = 0; i < allClips.Length; i++)
+        {
+            for (int j = 0; j < differentTags.Length; j++)
+            {
+                if (allClips[i].name.ToLower().Contains(differentTags[j].ToLower()))
+                {
+                    tempClipTags[i] += "#" + differentTags[j];
+                }
+            }
+
+            if (tempClipTags[i] == null)
+            {
+                tempClipTags[i] = "NoTag";
+            }
+        }
+        Debug.Log(tempClipTags[0]);
+        return tempClipTags;
     }
 
     public AnimationClip[] FindClipsFromAnimatorController()
