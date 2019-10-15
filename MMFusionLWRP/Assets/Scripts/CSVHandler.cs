@@ -30,23 +30,6 @@ public class CSVHandler
     private List<TrajectoryPoint> allPoints;
     private bool ignoreFrame = false;
 
-    public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames, int CSVIndex)
-    {
-        switch (CSVIndex)
-        {
-            case 0:
-                fileName = idleFileName;
-                break;
-            case 1:
-                fileName = mmFileName;
-                break;
-            default:
-                Debug.LogError("WriteCSV Error: CSV file with index " + CSVIndex + " not found!");
-                break;
-        }
-
-        WriteCSV(poseData, pointData, clipNames, frames);
-    }
 
     public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames)
     {
@@ -105,24 +88,6 @@ public class CSVHandler
                 file.WriteLine(string.Join(",", tempLine));
             }
         }
-    }
-    public List<FeatureVector> ReadCSV(int trajPointsLength, int trajStepSize, int CSVIndex) // :TODO YYY - Finish this
-    {
-        switch (CSVIndex)
-        {
-            case 0:
-                fileName = idleFileName;
-                break;
-            case 1:
-                fileName = mmFileName;
-                break;
-            default:
-                Debug.LogError("ReadCSV Error: CSV file with index " + CSVIndex + " not found!");
-                break;
-        }
-
-        List<FeatureVector> tempFeatureVector = ReadCSV(0, 0);
-        return tempFeatureVector;
     }
 
 
