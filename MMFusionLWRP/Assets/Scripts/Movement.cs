@@ -7,14 +7,19 @@ public class Movement : MonoBehaviour
 
     // For every variable used, make a scriptableObject with the type. So make a scriptable object script that takes a single float,
     // For every data type, have a TypeReference for the scriptableObject. Create new SOs through asset menu for each variable here. 
+
+
+    // GetMovementTrajectoryCharacterSpace function. Currently movement is in worldspace, and animations in character space,
+    // We need a function to change that, so the movements are properly applied to the character in the right space. 
+    
     // --- References
     private MotionMatching mm;
 
 	// --- Public
-    public float lerpTime = 1, movementSpeed = 0.01f;
+    public FloatReference lerpTime, movementSpeed, movementMultiplier;
 
     // --- Private 
-    private Vector3 prevPos, goalPos, direction;
+    private Vector3 prevPos, goalPos;
 
     private string movementType;
 
@@ -34,9 +39,13 @@ public class Movement : MonoBehaviour
 
             case "joystick":
                 ClickAndDrag();
+                if(transform.position != goalPos) {
+                    goalPos = transform.position;
+                }
+                
                 break;
 
-             case "moveToPoint":
+            case "moveToPoint":
                 MoveToMouse();
                 break; 
 
@@ -82,7 +91,7 @@ public class Movement : MonoBehaviour
 
     public void KeyBoardMove() {
         prevPos = transform.position;
-	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed, lerpTime);
+	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
 	    transform.LookAt(newPos);
 	    transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
     }
@@ -97,7 +106,8 @@ public class Movement : MonoBehaviour
         // Need some way to reset, or tell if other functions affected goalPos. Or reset this goalPos when you change.
             if(Vector3.Distance(transform.position, goalPos) > 0.2f) {
                     transform.LookAt(goalPos);
-                    transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed * 5) * Time.deltaTime);
+                    // The movementSpeed value here should not be multiplied, but if movementSpeed is changed, KeyBoardMove might be too fast. 
+                    transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.deltaTime);
             }
                 
             
@@ -117,8 +127,9 @@ public class Movement : MonoBehaviour
                 //Debug.Log(hit.point.x + hit.point.z);
                 //Vector3 direction = hit.point - transform.position;
                 //direction.y = 0;
+                goalPos = hit.point;
                 transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
-                transform.position = Vector3.Lerp(transform.position, hit.point, (movementSpeed * 5 ) * Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value ) * Time.deltaTime);
             }
 
         }        
