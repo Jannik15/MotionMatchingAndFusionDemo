@@ -50,6 +50,12 @@ public class PreProcessing
 		List<FeatureVector> featureVector = csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints);
         return featureVector;
     }
+
+    //public List<FeatureVector> LoadData(string label)
+    //{
+    //    List<FeatureVector> idleFeatureVector = csvHandler.ReadCSV(); // :TODO YYY - Finish this
+    //    return idleFeatureVector;
+    //}
     public Vector3 GetJointPositionAtFrame(AnimationClip clip, int frame, string jointName)
     {
         // Bindings are inherited from a clip, and the AnimationCurve is inherited from the clip's binding
