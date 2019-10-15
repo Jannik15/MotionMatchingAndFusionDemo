@@ -481,10 +481,11 @@ MonoBehaviour:
   _preProcess: 1
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
-  queryRateInFrames: 30
+  queryRateInFrames: 10
   candidatesPerMisc: 500
   _isMotionMatching: 0
   _isIdling: 0
+  idleThreshold: 0.1
   weightLFootVel: 1
   weightRFootVel: 1
   weightRootVel: 1
@@ -505,6 +506,7 @@ MonoBehaviour:
   lerpTime: 1
   movementSpeed: 0.1
   joyMovementSpeed: 0
+  speed: 0
 --- !u!1 &2016575769
 GameObject:
   m_ObjectHideFlags: 0

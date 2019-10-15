@@ -8,6 +8,8 @@ public class CSVHandler
 {
     private string path = "Assets/Resources/MotionMatching";
     private string fileName = "AnimData.csv";
+    private string mmFileName = "MMAnimData.csv";
+    private string idleFileName = "IdleAnimData.csv";
     private static string[] csvLabels =
     {
         // General info
@@ -27,6 +29,24 @@ public class CSVHandler
     private List<MMPose> allPoses;
     private List<TrajectoryPoint> allPoints;
     private bool ignoreFrame = false;
+
+    public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames, int CSVIndex)
+    {
+        switch (CSVIndex)
+        {
+            case 0:
+                fileName = idleFileName;
+                break;
+            case 1:
+                fileName = mmFileName;
+                break;
+            default:
+                Debug.LogError("WriteCSV Error: CSV file with index " + CSVIndex + " not found!");
+                break;
+        }
+
+        WriteCSV(poseData, pointData, clipNames, frames);
+    }
 
     public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames)
     {
@@ -86,6 +106,26 @@ public class CSVHandler
             }
         }
     }
+    public List<FeatureVector> ReadCSV(int trajPointsLength, int trajStepSize, int CSVIndex) // :TODO YYY - Finish this
+    {
+        switch (CSVIndex)
+        {
+            case 0:
+                fileName = idleFileName;
+                break;
+            case 1:
+                fileName = mmFileName;
+                break;
+            default:
+                Debug.LogError("ReadCSV Error: CSV file with index " + CSVIndex + " not found!");
+                break;
+        }
+
+        List<FeatureVector> tempFeatureVector = ReadCSV(0, 0);
+        return tempFeatureVector;
+    }
+
+
     public List<FeatureVector> ReadCSV(int trajPointsLength, int trajStepSize)
     {
         StreamReader reader = new StreamReader(path + "/" + fileName);
@@ -117,7 +157,7 @@ public class CSVHandler
                     new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
                     new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format))));
                 allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[10], format), 0.0f, float.Parse(tempString[11], format)),
-                    new Vector3(float.Parse(tempString[12], format),0.0f, float.Parse(tempString[13], format))));
+                    new Vector3(float.Parse(tempString[12], format), 0.0f, float.Parse(tempString[13], format))));
             }
             else
                 ignoreHeaders = false;
@@ -133,14 +173,15 @@ public class CSVHandler
                     trajPoints[j] = new TrajectoryPoint(allPoints[i + j * trajStepSize].GetPoint(), allPoints[i + j * trajStepSize].GetForward());
                 else
                 {
-	                trajPoints[j] = new TrajectoryPoint();
-	                ignoreFrame = true;
+                    trajPoints[j] = new TrajectoryPoint();
+                    ignoreFrame = true;
                 }
             }
-			if (!ignoreFrame)
-				featuresFromCSV.Add(new FeatureVector(allPoses[i], new Trajectory(trajPoints), i, allClipNames[i], allFrames[i]));
-			ignoreFrame = false;
+            if (!ignoreFrame)
+                featuresFromCSV.Add(new FeatureVector(allPoses[i], new Trajectory(trajPoints), i, allClipNames[i], allFrames[i]));
+            ignoreFrame = false;
         }
         return featuresFromCSV;
     }
+
 }
