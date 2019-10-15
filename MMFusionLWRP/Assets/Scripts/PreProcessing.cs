@@ -93,28 +93,28 @@ public class PreProcessing
         return (currentPos - prevPos) * sampleRate;
     }
 
-    public string[] GenerateClipTags(AnimationClip[] allClips, string[] differentTags)
-    {
-        string[] tempClipTags = new string[allClips.Length];
+    //public string[] GenerateClipTags(AnimationClip[] allClips, string[] allTags)  // TODO: Remove all this code, if not needed? - YYY
+    //{
+    //    string[] tempClipTags = new string[allClips.Length];
 
-        for (int i = 0; i < allClips.Length; i++)
-        {
-            for (int j = 0; j < differentTags.Length; j++)
-            {
-                if (allClips[i].name.ToLower().Contains(differentTags[j].ToLower()))
-                {
-                    tempClipTags[i] += "#" + differentTags[j];
-                }
-            }
+    //    for (int i = 0; i < allClips.Length; i++)
+    //    {
+    //        for (int j = 0; j < allTags.Length; j++)
+    //        {
+    //            if (allClips[i].name.ToLower().Contains(allTags[j].ToLower()))
+    //            {
+    //                tempClipTags[i] += "#" + allTags[j].ToLower();
+    //            }
+    //        }
 
-            if (tempClipTags[i] == null)
-            {
-                tempClipTags[i] = "NoTag";
-            }
-        }
-        Debug.Log(tempClipTags[0]);
-        return tempClipTags;
-    }
+    //        if (tempClipTags[i] == null)
+    //        {
+    //            tempClipTags[i] = "#other";
+    //        }
+    //    }
+    //    Debug.Log(tempClipTags[0]);
+    //    return tempClipTags;
+    //}
 
     public AnimationClip[] FindClipsFromAnimatorController()
     {

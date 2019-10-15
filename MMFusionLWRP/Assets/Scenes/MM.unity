@@ -479,7 +479,7 @@ MonoBehaviour:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 1
+  _preProcess: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
   queryRateInFrames: 10

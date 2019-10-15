@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Enumerable = System.Linq.Enumerable;
 
 [RequireComponent(typeof(Animator))]
 public class MotionMatching : MonoBehaviour
@@ -14,11 +15,18 @@ public class MotionMatching : MonoBehaviour
     // --- Collections
     private List<FeatureVector> featureVectors;
     private AnimationClip[] allClips;
-    private string[] allClipTags;
+    //private string[] allClipTags;     // TODO: Remove all out commented code if not needed anymore? - YYY
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
-    public ClipTags tagContainer; // put ref to chosen tag container scriptable object
+    //public ClipTags tagContainer; // put ref to chosen tag container scriptable object
     public string[] jointNames;
-    public static string[] movementTag = {"Idle", "Walk", "Run"};
+
+    //public static string[] movementTags = {"Idle", "Walk", "Run"};
+    public string[][] movementTags =    // TODO: Changed the above 'movementTag' to this (So we can easily define the different states) - YYY
+    {
+        new []{ "Idle"},                // State 0
+        new []{ "Walk", "Run" }         // State 1
+    };
+    private int currentState = 0;
 
     // --- Variables 
     public bool _preProcess;
@@ -41,7 +49,7 @@ public class MotionMatching : MonoBehaviour
         preProcessing = new PreProcessing();
 
         allClips = animContainer.animationClips;
-        allClipTags = tagContainer.clipTags;
+        //allClipTags = tagContainer.clipTags;
         if (allClips == null)
             Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
 
@@ -50,12 +58,11 @@ public class MotionMatching : MonoBehaviour
         {
             animContainer.animationClips = preProcessing.FindClipsFromAnimatorController();
             allClips = animContainer.animationClips;
-            tagContainer.clipTags = preProcessing.GenerateClipTags(allClips, movementTag);
-            allClipTags = tagContainer.clipTags;
-            preProcessing.Preprocess(allClips, jointNames);
+            //tagContainer.clipTags = preProcessing.GenerateClipTags(allClips, movementTags);
+            //allClipTags = tagContainer.clipTags;
+            preProcessing.Preprocess(allClips, jointNames); 
         }
 #endif
-
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 
         for (int i = 0; i < allClips.Length; i++)
@@ -66,6 +73,14 @@ public class MotionMatching : MonoBehaviour
 				if (featureVectors[j].GetClipName() == allClips[i].name)
                     featureVectors[j].SetFrameCount(frames);
 	        }
+        }
+
+        for (int i = 0; i < movementTags.Length; i++)
+        {
+            for (int j = 0; j < movementTags[i].Length; j++)
+            {
+                movementTags[i][j] = movementTags[i][j].ToLower();
+            }
         }
 
         enumeratorBools = AddEnumeratorBoolsToList();
@@ -90,6 +105,14 @@ public class MotionMatching : MonoBehaviour
         //    StopAllCoroutines();
         //    StartCoroutine(Idle());
         //}
+        if (movement.GetSpeed() <= idleThreshold)
+        {
+            currentState = 0;
+        }
+        else
+        {
+            currentState = 1;
+        }
     }
 
     private void OnDrawGizmos()
@@ -175,6 +198,8 @@ public class MotionMatching : MonoBehaviour
 
 		for (int i = 0; i < featureVectors.Count; i++)
 		{
+            if (!tagChecker(featureVectors[i].GetClipName(), currentState)) // TODO: Added this tag checker bool - We need to optimize it maybe. See further down
+                continue;
             if (( featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
                  featureVectors[i].GetFrame() + queryRateInFrames <=  featureVectors[i].GetFrameCountForID())
             { // TODO: Take KNN candidates for each animation 
@@ -201,6 +226,20 @@ public class MotionMatching : MonoBehaviour
             }
         }
         return bestId;
+    }
+
+    private bool tagChecker(string candidateName, int stateNumber)
+    {
+        bool tempBool = false;
+
+        for (int i = 0; i < movementTags[stateNumber].Length; i++)
+        {
+            if (candidateName.ToLower().Contains(movementTags[stateNumber][i]))   // TODO: Not sure if this is a good solution performance-wise. - YYY
+            {                                                                     // TODO: movementTags set to lower case during awake. Not sure how else to optimize?
+                tempBool = true;
+            }
+        }
+        return tempBool;
     }
 
 }
