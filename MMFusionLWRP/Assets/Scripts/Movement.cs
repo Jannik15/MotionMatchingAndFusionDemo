@@ -8,11 +8,11 @@ public class Movement : MonoBehaviour
     private MotionMatching mm;
 
 	// --- Public
-    public float lerpTime = 1, movementSpeed = 0.01f, joyMovementSpeed, speed;
+    public float lerpTime = 1, movementSpeed = 0.01f, joyMovementSpeed;
 
     // --- Private 
     private Vector3 prevPos, goalPos;
-
+    private float speed;
     private string movementType;
 
     private void Awake()
@@ -62,9 +62,9 @@ public class Movement : MonoBehaviour
 			{
 				// Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
 				Quaternion lookRotation = transform.position + transform.forward != Vector3.zero
-					? Quaternion.LookRotation((transform.position + transform.forward)) : Quaternion.identity; // Shorthand if : else
+					? Quaternion.LookRotation(transform.position + transform.forward) : Quaternion.identity; // Shorthand if : else
 
-				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
+				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, movementSpeed/*(mm.framesBetweenTrajectoryPoints / 100.0f)*/ * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
 				Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}

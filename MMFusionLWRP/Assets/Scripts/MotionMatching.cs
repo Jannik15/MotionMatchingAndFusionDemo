@@ -63,6 +63,14 @@ public class MotionMatching : MonoBehaviour
                     mmFeatureVectors[j].SetFrameCount(frames);
 	        }
         }
+
+        for (int i = 0; i < mmFeatureVectors.Count; i++)
+        {
+			if (i != 0)
+				mmFeatureVectors[i].CalculateVelocity(mmFeatureVectors[i - 1].GetPose(), allClips[0].frameRate);
+			else
+				mmFeatureVectors[i].CalculateVelocity(mmFeatureVectors[i].GetPose(), allClips[0].frameRate); // Velocity is 0 for frame 0 of all animations
+        }
         enumeratorBools = AddEnumeratorBoolsToList();
     }
 
@@ -95,7 +103,7 @@ public class MotionMatching : MonoBehaviour
 		    {
 				// Position
 			    Gizmos.color = Color.red;
-                //Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+                Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
                 Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
 	                movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
@@ -182,11 +190,10 @@ public class MotionMatching : MonoBehaviour
     List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
-		Debug.Log(mmFeatureVectors.Count);
 		for (int i = 0; i < mmFeatureVectors.Count; i++)
 		{
             if (( mmFeatureVectors[i].GetID() > currentID || mmFeatureVectors[i].GetID() < currentID - queryRateInFrames) &&
-                 mmFeatureVectors[i].GetFrame() + queryRateInFrames <= mmFeatureVectors[i].GetFrameCountForID())
+                 mmFeatureVectors[i].GetFrame() + queryRateInFrames < mmFeatureVectors[i].GetFrameCountForID())
             { // TODO: Take KNN candidates for each animation 
 	            candidates.Add(mmFeatureVectors[i]);
             }
@@ -198,11 +205,10 @@ public class MotionMatching : MonoBehaviour
     {
         int bestId = -1;
         float currentDif = float.MaxValue;
-
+        Debug.Log("Pose matching for " + candidates.Count + " candidates");
         foreach (var candidate in candidates)
         {
-	        float candidateDif =  mmFeatureVectors[currentID].ComparePoses(candidate, allClips[0].frameRate,
-		        weightLFootVel, weightRFootVel, weightRootVel);
+	        float candidateDif =  mmFeatureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
             if (candidateDif < currentDif)
             {
 				//Debug.Log("Candidate diff: " + candidateDif + " < " + " Current diff:" + currentDif);
@@ -210,6 +216,7 @@ public class MotionMatching : MonoBehaviour
                 currentDif = candidateDif;
             }
         }
-        return bestId;
+		Debug.Log("Returning best id from pose matching: " + bestId);
+		return bestId;
     }
 }
