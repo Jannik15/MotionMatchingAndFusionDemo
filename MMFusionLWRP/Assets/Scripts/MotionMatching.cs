@@ -83,6 +83,13 @@ public class MotionMatching : MonoBehaviour
             }
         }
 
+        for (int i = 0; i < featureVectors.Count; i++)
+        {
+			if (i != 0)
+				featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), allClips[0].frameRate);
+			else
+				featureVectors[i].CalculateVelocity(featureVectors[i].GetPose(), allClips[0].frameRate); // Velocity is 0 for frame 0 of all animations
+        }
         enumeratorBools = AddEnumeratorBoolsToList();
     }
 
@@ -123,7 +130,7 @@ public class MotionMatching : MonoBehaviour
 		    {
 				// Position
 			    Gizmos.color = Color.red;
-                //Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+                Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
                 Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
 	                movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
@@ -195,13 +202,12 @@ public class MotionMatching : MonoBehaviour
     List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
-
-		for (int i = 0; i < featureVectors.Count; i++)
+		for (int i = 0; i < mmFeatureVectors.Count; i++)
 		{
             if (!tagChecker(featureVectors[i].GetClipName(), currentState)) // TODO: Added this tag checker bool - We need to optimize it maybe. See further down
                 continue;
             if (( featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
-                 featureVectors[i].GetFrame() + queryRateInFrames <=  featureVectors[i].GetFrameCountForID())
+                 featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID())
             { // TODO: Take KNN candidates for each animation 
 	            candidates.Add( featureVectors[i]);
             }
@@ -213,11 +219,10 @@ public class MotionMatching : MonoBehaviour
     {
         int bestId = -1;
         float currentDif = float.MaxValue;
-
+        Debug.Log("Pose matching for " + candidates.Count + " candidates");
         foreach (var candidate in candidates)
         {
-	        float candidateDif =  featureVectors[currentID].ComparePoses(candidate, allClips[0].frameRate,
-		        weightLFootVel, weightRFootVel, weightRootVel);
+	        float candidateDif =  mmFeatureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
             if (candidateDif < currentDif)
             {
 				//Debug.Log("Candidate diff: " + candidateDif + " < " + " Current diff:" + currentDif);
@@ -225,7 +230,8 @@ public class MotionMatching : MonoBehaviour
                 currentDif = candidateDif;
             }
         }
-        return bestId;
+		Debug.Log("Returning best id from pose matching: " + bestId);
+		return bestId;
     }
 
     private bool tagChecker(string candidateName, int stateNumber)
