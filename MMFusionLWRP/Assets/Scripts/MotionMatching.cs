@@ -54,16 +54,16 @@ public class MotionMatching : MonoBehaviour
 #endif
         mmFeatureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
         // idleFeatureVectors = preProcessing.LoadData()
-        idleFeatureVectors = GetIdleAnimations(); // :TODO move this to pre-processing later
-        featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
+        /*idleFeatureVectors = GetIdleAnimations(); */// :TODO fix this after doing the CSV stuff
+        mmFeatureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 
         for (int i = 0; i < allClips.Length; i++)
         {
             int frames = (int) (allClips[i].length * allClips[i].frameRate);
-	        for (int j = 0; j < featureVectors.Count; j++)
+	        for (int j = 0; j < mmFeatureVectors.Count; j++)
 	        {
-				if (featureVectors[j].GetClipName() == allClips[i].name)
-					featureVectors[j].SetFrameCount(frames);
+				if (mmFeatureVectors[j].GetClipName() == allClips[i].name)
+                    mmFeatureVectors[j].SetFrameCount(frames);
 	        }
         }
         enumeratorBools = AddEnumeratorBoolsToList();
@@ -72,7 +72,7 @@ public class MotionMatching : MonoBehaviour
     private void Start()
     {
         // --- Instantiation
-		UpdateAnimation(0, 0);
+		UpdateMMAnimation(0, 0);
         StartCoroutine(MotionMatch());
         prevPosition = transform.position;
     }
@@ -190,7 +190,7 @@ public class MotionMatching : MonoBehaviour
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
 
-		for (int i = 0; i < featureVectors.Count; i++)
+		for (int i = 0; i < mmFeatureVectors.Count; i++)
 		{
             if (( mmFeatureVectors[i].GetID() > currentID ||  mmFeatureVectors[i].GetID() < currentID - queryRateInFrames) &&
                  mmFeatureVectors[i].GetFrame() + queryRateInFrames <=  mmFeatureVectors[i].GetFrameCountForID())
@@ -222,22 +222,22 @@ public class MotionMatching : MonoBehaviour
 
     }
 
-    private void SaveAllAnimClipsToContainer(AnimationClip[] animClips)
-    {
-        List<FeatureVector> tempIdleAnims = new List<FeatureVector>();
+    //private void SaveAllAnimClipsToContainer(AnimationClip[] animClips)
+    //{
+    //    List<FeatureVector> tempIdleAnims = new List<FeatureVector>();
 
-        for (int i = 0; i < mmFeatureVectors.Count; i++)
-        {
-            if (mmFeatureVectors[i].GetClipName().Contains("idle") || mmFeatureVectors[i].GetClipName().Contains("Idle"))
-            {
-                tempIdleAnims.Add(mmFeatureVectors[i]);
-            }
+    //    for (int i = 0; i < mmFeatureVectors.Count; i++)
+    //    {
+    //        if (mmFeatureVectors[i].GetClipName().Contains("idle") || mmFeatureVectors[i].GetClipName().Contains("Idle"))
+    //        {
+    //            tempIdleAnims.Add(mmFeatureVectors[i]);
+    //        }
 
-        }
+    //    }
 
-        if (tempIdleAnims.Count == 0)
-            Debug.LogError("No idle animations found. Please label them with 'idle' for the system to find them");
+    //    if (tempIdleAnims.Count == 0)
+    //        Debug.LogError("No idle animations found. Please label them with 'idle' for the system to find them");
 
-        return tempIdleAnims;
-    }
+    //    return tempIdleAnims;
+    //}
 }
