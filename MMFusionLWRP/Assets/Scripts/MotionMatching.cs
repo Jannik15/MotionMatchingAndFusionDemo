@@ -202,7 +202,7 @@ public class MotionMatching : MonoBehaviour
     List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
-		for (int i = 0; i < mmFeatureVectors.Count; i++)
+		for (int i = 0; i < featureVectors.Count; i++)
 		{
             if (!tagChecker(featureVectors[i].GetClipName(), currentState)) // TODO: Added this tag checker bool - We need to optimize it maybe. See further down
                 continue;
@@ -222,7 +222,7 @@ public class MotionMatching : MonoBehaviour
         Debug.Log("Pose matching for " + candidates.Count + " candidates");
         foreach (var candidate in candidates)
         {
-	        float candidateDif =  mmFeatureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
+	        float candidateDif =  featureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
             if (candidateDif < currentDif)
             {
 				//Debug.Log("Candidate diff: " + candidateDif + " < " + " Current diff:" + currentDif);
