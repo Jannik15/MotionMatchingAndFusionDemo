@@ -5,19 +5,10 @@ using UnityEngine;
 [System.Serializable]
 public class FloatReference
 {
-    public bool UseConstant = true;
-    public float ConstantValue;
+    public bool UseUnique = true;
+    public float UniqueValue;
 
     public FloatVariable variable;
 
-    public float value 
-    {
-        get
-        {
-            if (!UseConstant) return variable.value;
-            if (ConstantValue.Equals(0))
-                return ConstantValue = variable.value;
-            return ConstantValue;
-        }
-    }
+    public float value => UseUnique ? UniqueValue : variable.value;
 }

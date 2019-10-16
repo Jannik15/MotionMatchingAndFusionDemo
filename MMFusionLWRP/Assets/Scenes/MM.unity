@@ -504,16 +504,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lerpTime:
-    UseConstant: 1
-    ConstantValue: 0
+    UseUnique: 0
+    UniqueValue: 0
     variable: {fileID: 11400000, guid: bec0ca293c749224cbf6aab8e6597e25, type: 2}
   movementSpeed:
-    UseConstant: 1
-    ConstantValue: 1
+    UseUnique: 0
+    UniqueValue: 0
     variable: {fileID: 11400000, guid: 588fd1d65d9194242915fb9c4c8206d0, type: 2}
   movementMultiplier:
-    UseConstant: 1
-    ConstantValue: 1
+    UseUnique: 0
+    UniqueValue: 0
     variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
 --- !u!1 &2016575769
 GameObject:
