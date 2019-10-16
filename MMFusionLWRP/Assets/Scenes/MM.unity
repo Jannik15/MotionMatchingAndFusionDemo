@@ -503,9 +503,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dc9a2cc157b77f4392ce664c05fe5ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lerpTime: 1
-  movementSpeed: 0.05
-  joyMovementSpeed: 0
+  lerpTime:
+    UseConstant: 1
+    ConstantValue: 0
+    variable: {fileID: 11400000, guid: bec0ca293c749224cbf6aab8e6597e25, type: 2}
+  movementSpeed:
+    UseConstant: 1
+    ConstantValue: 1
+    variable: {fileID: 11400000, guid: 588fd1d65d9194242915fb9c4c8206d0, type: 2}
+  movementMultiplier:
+    UseConstant: 1
+    ConstantValue: 1
+    variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
 --- !u!1 &2016575769
 GameObject:
   m_ObjectHideFlags: 0
