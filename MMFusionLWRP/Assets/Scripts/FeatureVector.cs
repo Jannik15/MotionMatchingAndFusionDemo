@@ -86,14 +86,9 @@ public class FeatureVector
 		rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
     }
 
-    public float ComparePoses(FeatureVector candidateVector, float sampleRate)
+    public float ComparePoses(FeatureVector candidateVector)
     {
 	    float difference = 0;
-
-	    if (frame != 0 && (lFootVel.x < Mathf.Epsilon && lFootVel.y < Mathf.Epsilon && lFootVel.z < Mathf.Epsilon))
-	    {
-		    CalculateVelocity(candidateVector.pose, sampleRate);
-        }
 
         difference += Vector3.Distance(lFootVel, candidateVector.GetLeftFootVelocity());
 	    difference += Vector3.Distance(rFootVel, candidateVector.GetRightFootVelocity());
@@ -101,14 +96,9 @@ public class FeatureVector
 
 	    return difference;
     }
-    public float ComparePoses(FeatureVector candidateVector, float sampleRate, float weightLFootVel, float weightRFootVel, float weightRootVel)
+    public float ComparePoses(FeatureVector candidateVector, float weightLFootVel, float weightRFootVel, float weightRootVel)
     {
 	    float difference = 0;
-
-	    if (frame != 0 && (lFootVel.x < Mathf.Epsilon && lFootVel.y < Mathf.Epsilon && lFootVel.z < Mathf.Epsilon))
-	    {
-		    CalculateVelocity(candidateVector.pose, sampleRate);
-	    }
 
         difference += Vector3.Distance(lFootVel * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
 	    difference += Vector3.Distance(rFootVel * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);

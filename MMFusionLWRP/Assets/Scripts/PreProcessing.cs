@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +27,7 @@ public class PreProcessing
         allFrames = new List<float>();
         allPoses = new List<MMPose>();
         allPoints = new List<Trajectory>();
-
+        
         sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
         foreach (var clip in allClips)
         {
@@ -41,7 +42,9 @@ public class PreProcessing
 	                GetJointQuaternionAtFrame(clip, j, jointNames[0]))); // Quaternion for this point
             }
         }
+
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
+        
     }
     public List<FeatureVector> LoadData(int pointsPerTrajectory, int framesBetweenTrajectoryPoints)
     {
@@ -51,11 +54,6 @@ public class PreProcessing
         return featureVector;
     }
 
-    //public List<FeatureVector> LoadData(string label)
-    //{
-    //    List<FeatureVector> idleFeatureVector = csvHandler.ReadCSV(); // :TODO YYY - Finish this
-    //    return idleFeatureVector;
-    //}
     public Vector3 GetJointPositionAtFrame(AnimationClip clip, int frame, string jointName)
     {
         // Bindings are inherited from a clip, and the AnimationCurve is inherited from the clip's binding
@@ -94,6 +92,29 @@ public class PreProcessing
     {
         return (currentPos - prevPos) * sampleRate;
     }
+
+    //public string[] GenerateClipTags(AnimationClip[] allClips, string[] allTags)  // TODO: Remove all this code, if not needed? - YYY
+    //{
+    //    string[] tempClipTags = new string[allClips.Length];
+
+    //    for (int i = 0; i < allClips.Length; i++)
+    //    {
+    //        for (int j = 0; j < allTags.Length; j++)
+    //        {
+    //            if (allClips[i].name.ToLower().Contains(allTags[j].ToLower()))
+    //            {
+    //                tempClipTags[i] += "#" + allTags[j].ToLower();
+    //            }
+    //        }
+
+    //        if (tempClipTags[i] == null)
+    //        {
+    //            tempClipTags[i] = "#other";
+    //        }
+    //    }
+    //    Debug.Log(tempClipTags[0]);
+    //    return tempClipTags;
+    //}
 
     public AnimationClip[] FindClipsFromAnimatorController()
     {
