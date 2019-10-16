@@ -28,8 +28,6 @@ public class CSVHandler
     private List<float> allFrames;
     private List<MMPose> allPoses;
     private List<TrajectoryPoint> allPoints;
-    private bool ignoreFrame = false;
-
 
     public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames)
     {
@@ -132,28 +130,17 @@ public class CSVHandler
             TrajectoryPoint[] trajPoints = new TrajectoryPoint[trajPointsLength];
             for (int j = 0; j < trajPointsLength; j++)
             {
-                if (i + j * trajStepSize < allClipNames.Count)
+                if (i + j * trajStepSize < allClipNames.Count) // Out of bounds handler
                 {
                     if (allFrames[i] < allFrames[i + j * trajStepSize]) // clip 3 at frame 45 out of 70 with a trajStepSize of 10 goes 45, 55, 65, X, X
-                    {
-                        //if (i + j * trajStepSize < allPoints.Count) // Out of range prevention
                         trajPoints[j] = new TrajectoryPoint(allPoints[i + j * trajStepSize].GetPoint(), allPoints[i + j * trajStepSize].GetForward());
-                    }
                     else
-                    {
                         trajPoints[j] = new TrajectoryPoint();
-                        //ignoreFrame = true;
-                    }
                 }
                 else
-                {
                     trajPoints[j] = new TrajectoryPoint();
-                    //ignoreFrame = true;
-                }
             }
-            if (!ignoreFrame)
-                featuresFromCSV.Add(new FeatureVector(allPoses[i], new Trajectory(trajPoints), i, allClipNames[i], allFrames[i]));
-            ignoreFrame = false;
+            featuresFromCSV.Add(new FeatureVector(allPoses[i], new Trajectory(trajPoints), i, allClipNames[i], allFrames[i]));
         }
         return featuresFromCSV;
     }

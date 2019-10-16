@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
-using Enumerable = System.Linq.Enumerable;
 
 [RequireComponent(typeof(Animator))]
 public class MotionMatching : MonoBehaviour
@@ -65,7 +66,6 @@ public class MotionMatching : MonoBehaviour
 #endif
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 
-
         for (int i = 0; i < allClips.Length; i++)
         {
             int frames = (int) (allClips[i].length * allClips[i].frameRate);
@@ -92,11 +92,6 @@ public class MotionMatching : MonoBehaviour
 				featureVectors[i].CalculateVelocity(featureVectors[i].GetPose(), allClips[0].frameRate); // Velocity is 0 for frame 0 of all animations
         }
         enumeratorBools = AddEnumeratorBoolsToList();
-
-        for (int i = 0; i < featureVectors.Count; i++)
-        {
-            Debug.Log("FV ID: " + featureVectors[i].GetID() + " with name " + featureVectors[i].GetClipName() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID());
-        }
     }
 
     private void Start()
@@ -185,7 +180,7 @@ public class MotionMatching : MonoBehaviour
 	    while (true)
 	    {
 		    currentID += queryRateInFrames;
-            List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), candidatesPerMisc);
+            List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory());
             int candidateID = PoseMatching(candidates);
 			UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
             yield return new WaitForSeconds(queryRateInFrames / currentClip.frameRate);
@@ -205,9 +200,12 @@ public class MotionMatching : MonoBehaviour
     }
     #endregion
 
-    List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
+    List<FeatureVector> TrajectoryMatching(Trajectory movementTraj)
     {
-		List<FeatureVector> candidates = new List<FeatureVector>();
+        List<FeatureVector> candidates = new List<FeatureVector>();
+        FeatureVector[,] possibleCandidates = new FeatureVector[movementTags.Length, candidatesPerMisc];
+        float[,] values = new float[movementTags.Length, candidatesPerMisc];
+        int currentMisc = currentState;
         //Debug.Log("Current ID is " + currentID);
         for (int i = 0; i < featureVectors.Count; i++)
 		{
@@ -220,10 +218,44 @@ public class MotionMatching : MonoBehaviour
             //Debug.Log("FV passed: ID " + featureVectors[i].GetID() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID() + " frames.");
             if ((featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
                  featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID())
-            { // TODO: Take KNN candidates for each animation 
-	            candidates.Add( featureVectors[i]);
-                //Debug.Log("Added " + featureVectors[i] + " to candidate list.");
+            {
+                //for (int j = 0; j < movementTags.Length; j++) // This for loop can be used if looking to consider multiple miscs for a single trajectory match
+                //{
+                //    if (TagChecker(featureVectors[i].GetClipName(), j))
+                //    {
+                //        currentMisc = j;
+                //    }
+                //}
+                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, weightTrajPoints, weightTrajForwards);
+                float comparison = tempVal;
+                int indexOfHighestValue = 0;
+                for (int j = 0; j < possibleCandidates.GetLength(1); j++)
+                {
+                    if (possibleCandidates[currentMisc, j] != null)
+                    {
+                        if (comparison < values[currentMisc, j])
+                        {
+                            comparison = values[currentMisc, j];
+                            indexOfHighestValue = j;
+                        }
+                    }
+                    else
+                    {
+                        possibleCandidates[currentMisc, j] = featureVectors[i];
+                        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, weightTrajPoints, weightTrajForwards);
+                    }
+                }
+                if (tempVal < comparison)
+                {
+                    possibleCandidates[currentMisc, indexOfHighestValue] = featureVectors[i];
+                    values[currentMisc, indexOfHighestValue] = tempVal;
+                }
             }
+        }
+        foreach (var candidate in possibleCandidates)
+        {
+            if (candidate != null)
+                candidates.Add(candidate);
         }
         return candidates;
     }
@@ -232,13 +264,14 @@ public class MotionMatching : MonoBehaviour
     {
         int bestId = -1;
         float currentDif = float.MaxValue;
-        //Debug.Log("Pose matching for " + candidates.Count + " candidates");
         foreach (var candidate in candidates)
         {
-            float candidateDif =  featureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
+            float velDif = featureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
+            float feetPosDif = featureVectors[currentID].GetPose().GetFeetDistance(candidate.GetPose());
+            float candidateDif = velDif + feetPosDif;
             if (candidateDif < currentDif)
             {
-				//Debug.Log("Candidate diff: " + candidateDif + " < " + " Current diff:" + currentDif);
+				Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
                 bestId = candidate.GetID();
                 currentDif = candidateDif;
             }

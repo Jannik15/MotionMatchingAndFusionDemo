@@ -14,7 +14,7 @@ public class PreProcessing
     private List<MMPose> allPoses;
     private List<Trajectory> allPoints;
     private List<Vector3> allRootVels, allLFootVels, allRFootVels;
-    private float debug;
+    private float debugFloat;
 
     // --- Variables
     private float sampleRate = 30;
@@ -29,20 +29,19 @@ public class PreProcessing
         allPoints = new List<Trajectory>();
         
         sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
-        foreach (var clip in allClips)
+        for (int i = 0; i < allClips.Length; i++)
         {
-            for (int j = 0; j < (int)clip.length * clip.frameRate; j++)
+            for (int j = 0; j < (int) (allClips[i].length * allClips[i].frameRate); j++)
             {
-                allClipNames.Add(clip.name);
+                allClipNames.Add(allClips[i].name);
                 allFrames.Add(j);
-                allPoses.Add(new MMPose(GetJointPositionAtFrame(clip, j, jointNames[0]), 
-	                GetJointPositionAtFrame(clip, j, jointNames[1]), GetJointPositionAtFrame(clip, j, jointNames[2])));
-                allPoints.Add(new Trajectory(new TrajectoryPoint(GetJointPositionAtFrame(clip, j, jointNames[0]), 
-	                GetJointQuaternionAtFrame(clip, j, jointNames[0]) * Vector3.forward), // Forward for this point
-	                GetJointQuaternionAtFrame(clip, j, jointNames[0]))); // Quaternion for this point
+                allPoses.Add(new MMPose(GetJointPositionAtFrame(allClips[i], j, jointNames[0]), 
+	                GetJointPositionAtFrame(allClips[i], j, jointNames[1]), GetJointPositionAtFrame(allClips[i], j, jointNames[2])));
+                allPoints.Add(new Trajectory(new TrajectoryPoint(GetJointPositionAtFrame(allClips[i], j, jointNames[0]), 
+	                GetJointQuaternionAtFrame(allClips[i], j, jointNames[0]) * Vector3.forward), // Forward for this point
+	                GetJointQuaternionAtFrame(allClips[i], j, jointNames[0]))); // Quaternion for this point
             }
         }
-
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
         
     }
@@ -82,7 +81,7 @@ public class PreProcessing
 		    {
 			    curve = AnimationUtility.GetEditorCurve(clip, binding);
 			    vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
-			    debug = frame / clip.frameRate;
+			    debugFloat = frame / clip.frameRate;
 			    arrayEnumerator++;
 		    }
 	    }
@@ -112,7 +111,7 @@ public class PreProcessing
     //            tempClipTags[i] = "#other";
     //        }
     //    }
-    //    Debug.Log(tempClipTags[0]);
+    //    debugFloat.Log(tempClipTags[0]);
     //    return tempClipTags;
     //}
 

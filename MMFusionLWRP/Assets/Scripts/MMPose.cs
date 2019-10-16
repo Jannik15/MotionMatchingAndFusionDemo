@@ -21,4 +21,12 @@ public class MMPose
     {
         return rFootPos;
     }
+
+    public float GetFeetDistance(MMPose otherFeet)
+    {
+        float distance = 0;
+        distance += Vector3.Distance(GetLeftFootPos(), otherFeet.GetLeftFootPos());
+        distance += Vector3.Distance(GetRightFootPos(), otherFeet.GetRightFootPos());
+        return distance;
+    }
 }
