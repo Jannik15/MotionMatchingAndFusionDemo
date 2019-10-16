@@ -12,7 +12,12 @@ public class FloatReference
 
     public float value 
     {
-        get{ return UseConstant ? ConstantValue :
-                                    variable.value; }
+        get
+        {
+            if (!UseConstant) return variable.value;
+            if (ConstantValue.Equals(0))
+                return ConstantValue = variable.value;
+            return ConstantValue;
+        }
     }
 }
