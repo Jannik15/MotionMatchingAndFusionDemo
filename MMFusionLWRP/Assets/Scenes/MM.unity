@@ -474,12 +474,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animContainer: {fileID: 11400000, guid: d984637c3976fac478d264e510426c2d, type: 2}
-  tagContainer: {fileID: 11400000, guid: b1f245fb8753f694185bf0217cb1b560, type: 2}
   jointNames:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 0
+  _preProcess: 1
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
   queryRateInFrames: 10
@@ -487,11 +486,11 @@ MonoBehaviour:
   _isMotionMatching: 0
   _isIdling: 0
   idleThreshold: 0.1
-  weightLFootVel: 0.112
-  weightRFootVel: 0.117
-  weightRootVel: 0.117
+  weightLFootVel: 1
+  weightRFootVel: 1
+  weightRootVel: 1
   weightTrajPoints: 1
-  weightTrajForwards: 0.112
+  weightTrajForwards: 1
 --- !u!114 &1861943230
 MonoBehaviour:
   m_ObjectHideFlags: 0

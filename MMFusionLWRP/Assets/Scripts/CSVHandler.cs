@@ -16,12 +16,12 @@ public class CSVHandler
         "ClipName" /*[0]*/,         "Frame" /*[1]*/,
 
         // Pose data
-        "RootVel.x" /*[2]*/,        "RootVel.z" /*[3]*/,
-        "LFootVel.x" /*[4]*/,       "LFootVel.y" /*[5]*/,   "LFootVel.z" /*[6]*/,
-        "RFootVel.x" /*[7]*/,       "RFootVel.y" /*[8]*/,     "RFootVel.z" /*[9]*/,
+        "RootPos.x" /*[2]*/,        "RootPos.z" /*[3]*/,
+        "LFootPos.x" /*[4]*/,       "LFootPos.y" /*[5]*/,   "LFootPos.z" /*[6]*/,
+        "RFootPos.x" /*[7]*/,       "RFootPos.y" /*[8]*/,     "RFootPos.z" /*[9]*/,
 
         // TrajectoryPoint data
-        "RootPos.x" /*[10]*/,        "RootPos.z" /*[11]*/,
+        "RootPos.x" /*[10]*/,        "RootPos.z" /*[11]*/,  // TODO: Remove this root pos since we have duplicates, but make sure to edit the correct references to the other
         "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
     };
     private List<string> allClipNames;
@@ -89,8 +89,6 @@ public class CSVHandler
             }
         }
     }
-
-
     public List<FeatureVector> ReadCSV(int trajPointsLength, int trajStepSize)
     {
         StreamReader reader = new StreamReader(path + "/" + fileName);
@@ -134,12 +132,23 @@ public class CSVHandler
             TrajectoryPoint[] trajPoints = new TrajectoryPoint[trajPointsLength];
             for (int j = 0; j < trajPointsLength; j++)
             {
-                if (i + j * trajStepSize < allPoints.Count) // Out of range prevention
-                    trajPoints[j] = new TrajectoryPoint(allPoints[i + j * trajStepSize].GetPoint(), allPoints[i + j * trajStepSize].GetForward());
+                if (i + j * trajStepSize < allClipNames.Count)
+                {
+                    if (allFrames[i] < allFrames[i + j * trajStepSize]) // clip 3 at frame 45 out of 70 with a trajStepSize of 10 goes 45, 55, 65, X, X
+                    {
+                        //if (i + j * trajStepSize < allPoints.Count) // Out of range prevention
+                        trajPoints[j] = new TrajectoryPoint(allPoints[i + j * trajStepSize].GetPoint(), allPoints[i + j * trajStepSize].GetForward());
+                    }
+                    else
+                    {
+                        trajPoints[j] = new TrajectoryPoint();
+                        //ignoreFrame = true;
+                    }
+                }
                 else
                 {
                     trajPoints[j] = new TrajectoryPoint();
-                    ignoreFrame = true;
+                    //ignoreFrame = true;
                 }
             }
             if (!ignoreFrame)

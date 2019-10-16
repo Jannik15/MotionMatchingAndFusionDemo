@@ -60,10 +60,11 @@ public class MotionMatching : MonoBehaviour
             allClips = animContainer.animationClips;
             //tagContainer.clipTags = preProcessing.GenerateClipTags(allClips, movementTags);
             //allClipTags = tagContainer.clipTags;
-            preProcessing.Preprocess(allClips, jointNames); 
+            preProcessing.Preprocess(allClips, jointNames);
         }
 #endif
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
+
 
         for (int i = 0; i < allClips.Length; i++)
         {
@@ -91,6 +92,11 @@ public class MotionMatching : MonoBehaviour
 				featureVectors[i].CalculateVelocity(featureVectors[i].GetPose(), allClips[0].frameRate); // Velocity is 0 for frame 0 of all animations
         }
         enumeratorBools = AddEnumeratorBoolsToList();
+
+        for (int i = 0; i < featureVectors.Count; i++)
+        {
+            Debug.Log("FV ID: " + featureVectors[i].GetID() + " with name " + featureVectors[i].GetClipName() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID());
+        }
     }
 
     private void Start()
@@ -102,16 +108,6 @@ public class MotionMatching : MonoBehaviour
 
     private void FixedUpdate()
     {
-	    if (!_isMotionMatching && movement.GetSpeed() > idleThreshold)
-	    {
-			StopAllCoroutines();
-		    StartCoroutine(MotionMatch());
-	    }
-        //if (!_isIdling  && movement.GetSpeed() <= idleThreshold)
-        //{
-        //    StopAllCoroutines();
-        //    StartCoroutine(Idle());
-        //}
         if (movement.GetSpeed() <= idleThreshold)
         {
             currentState = 0;
@@ -120,6 +116,16 @@ public class MotionMatching : MonoBehaviour
         {
             currentState = 1;
         }
+        if (!_isMotionMatching /* && movement.GetSpeed() > idleThreshold*/)
+	    {
+			StopAllCoroutines();
+		    StartCoroutine(MotionMatch());
+	    }
+        //if (!_isIdling && movement.GetSpeed() <= idleThreshold)
+        //{
+        //    StopAllCoroutines();
+        //    StartCoroutine(Idle());
+        //}
     }
 
     private void OnDrawGizmos()
@@ -144,7 +150,7 @@ public class MotionMatching : MonoBehaviour
 
     private void UpdateAnimation(int id, int frame)
     {
-		Debug.Log("Updating animation (ID): "+ currentID + " -> " + id);
+		//Debug.Log("Updating animation (ID): "+ currentID + " -> " + id);
 		for (int i = 0; i < allClips.Length; i++)
 	    {
 		    if (allClips[i].name == featureVectors[id].GetClipName())
@@ -182,7 +188,7 @@ public class MotionMatching : MonoBehaviour
             List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory(), candidatesPerMisc);
             int candidateID = PoseMatching(candidates);
 			UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
-            yield return new WaitForSeconds(queryRateInFrames / allClips[0].frameRate);
+            yield return new WaitForSeconds(queryRateInFrames / currentClip.frameRate);
 	    }
     }
 
@@ -194,7 +200,7 @@ public class MotionMatching : MonoBehaviour
 	    {
             int candidateID = PoseMatching(featureVectors);
             UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
-            yield return new WaitForSeconds((currentFrame - currentClip.length) / currentClip.frameRate);
+            yield return new WaitForSeconds(queryRateInFrames / currentClip.frameRate);
 	    }
     }
     #endregion
@@ -202,14 +208,21 @@ public class MotionMatching : MonoBehaviour
     List<FeatureVector> TrajectoryMatching(Trajectory movement, int candidatesPerMisc)
     {
 		List<FeatureVector> candidates = new List<FeatureVector>();
-		for (int i = 0; i < featureVectors.Count; i++)
+        //Debug.Log("Current ID is " + currentID);
+        for (int i = 0; i < featureVectors.Count; i++)
 		{
-            if (!tagChecker(featureVectors[i].GetClipName(), currentState)) // TODO: Added this tag checker bool - We need to optimize it maybe. See further down
+            //Debug.Log("ID " + i + " with name: " + featureVectors[i].GetClipName() + " compared to state: " + currentState);
+            if (!TagChecker(featureVectors[i].GetClipName(), currentState)
+            ) // TODO: Added this tag checker bool - We need to optimize it maybe. See further down
+            {
                 continue;
-            if (( featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
+            }
+            //Debug.Log("FV passed: ID " + featureVectors[i].GetID() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID() + " frames.");
+            if ((featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
                  featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID())
             { // TODO: Take KNN candidates for each animation 
 	            candidates.Add( featureVectors[i]);
+                //Debug.Log("Added " + featureVectors[i] + " to candidate list.");
             }
         }
         return candidates;
@@ -219,10 +232,10 @@ public class MotionMatching : MonoBehaviour
     {
         int bestId = -1;
         float currentDif = float.MaxValue;
-        Debug.Log("Pose matching for " + candidates.Count + " candidates");
+        //Debug.Log("Pose matching for " + candidates.Count + " candidates");
         foreach (var candidate in candidates)
         {
-	        float candidateDif =  featureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
+            float candidateDif =  featureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
             if (candidateDif < currentDif)
             {
 				//Debug.Log("Candidate diff: " + candidateDif + " < " + " Current diff:" + currentDif);
@@ -234,18 +247,17 @@ public class MotionMatching : MonoBehaviour
 		return bestId;
     }
 
-    private bool tagChecker(string candidateName, int stateNumber)
+    private bool TagChecker(string candidateName, int stateNumber)
     {
-        bool tempBool = false;
-
         for (int i = 0; i < movementTags[stateNumber].Length; i++)
         {
             if (candidateName.ToLower().Contains(movementTags[stateNumber][i]))   // TODO: Not sure if this is a good solution performance-wise. - YYY
             {                                                                     // TODO: movementTags set to lower case during awake. Not sure how else to optimize?
-                tempBool = true;
+                //Debug.Log(candidateName.ToLower() + " Contains " + movementTags[stateNumber][i]);
+                return true;
             }
         }
-        return tempBool;
+        return false;
     }
 
 }
