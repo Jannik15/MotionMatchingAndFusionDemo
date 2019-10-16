@@ -99,8 +99,9 @@ public class Movement : MonoBehaviour
 
     public void KeyBoardMove() {
         prevPos = transform.position;
-	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime);
-        Quaternion rotation = Quaternion.LookRotation(newPos - transform.position, Vector3.up);
+	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
+        Quaternion rotation = newPos - transform.position != Vector3.zero
+            ? Quaternion.LookRotation(newPos - transform.position) : Quaternion.identity; // Shorthand if : else
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * speed);
         //transform.LookAt(newPos);
         transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
