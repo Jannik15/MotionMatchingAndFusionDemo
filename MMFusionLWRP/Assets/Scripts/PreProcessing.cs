@@ -27,7 +27,7 @@ public class PreProcessing
         allFrames = new List<float>();
         allPoses = new List<MMPose>();
         allPoints = new List<Trajectory>();
-
+        
         sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
         foreach (var clip in allClips)
         {

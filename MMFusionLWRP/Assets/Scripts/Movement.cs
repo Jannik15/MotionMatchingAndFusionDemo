@@ -4,15 +4,25 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
+
+    // For every variable used, make a scriptableObject with the type. So make a scriptable object script that takes a single float,
+    // For every data type, have a TypeReference for the scriptableObject. Create new SOs through asset menu for each variable here. 
+
+
+    // GetMovementTrajectoryCharacterSpace function. Currently movement is in worldspace, and animations in character space,
+    // We need a function to change that, so the movements are properly applied to the character in the right space. 
+    
     // --- References
     private MotionMatching mm;
 
 	// --- Public
-    public float lerpTime = 1, movementSpeed = 0.01f, joyMovementSpeed;
+    public FloatReference lerpTime, movementSpeed, movementMultiplier;
 
     // --- Private 
     private Vector3 prevPos, goalPos;
+
     private float speed;
+
     private string movementType;
 
     private void Awake()
@@ -29,6 +39,10 @@ public class Movement : MonoBehaviour
 
             case "joystick":
                 ClickAndDrag();
+                if(transform.position != goalPos) {
+                    goalPos = transform.position;
+                }
+                
                 break;
 
             case "moveToPoint":
@@ -39,6 +53,10 @@ public class Movement : MonoBehaviour
                 movementType = "wasd";
                 //Debug.Log("Unknown movetype");
                 break;
+        }
+
+        if(Input.GetKeyDown("o")) {
+            ChangeMovement();
         }
     }
 
@@ -81,29 +99,61 @@ public class Movement : MonoBehaviour
 
     public void KeyBoardMove() {
         prevPos = transform.position;
-	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed, lerpTime);
+	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime);
         Quaternion rotation = Quaternion.LookRotation(newPos - transform.position, Vector3.up);
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * speed);
         //transform.LookAt(newPos);
         transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
     }
     public void MoveToMouse() {
-        if(Input.GetMouseButton(0)) {
-            goalPos = Input.mousePosition;
-            transform.LookAt(goalPos);
-            transform.position = Vector3.Lerp(transform.position, goalPos, movementSpeed*Time.deltaTime);
+        if(Input.GetMouseButtonDown(0)) {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if(Physics.Raycast(ray, out hit)) {
+                goalPos = hit.point;
+            }
         }
+        
+            if(Vector3.Distance(transform.position, goalPos) > 0.2f) {
+                    transform.LookAt(goalPos);
+                    transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.deltaTime);
+            }
+                
+            
+        
+
+
     }
 
     public void ClickAndDrag() {
-        // Centered on player character/ middle of screen.
-        // Could work with Vector3.Distance(transform.position, Input.MousePosition);
-        // moveSpeed increments with the Distance, maybe addForce?
+        if(Input.GetMouseButton(0)) {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if(Physics.Raycast(ray, out hit)) {
+                goalPos = hit.point;
+                transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
+                transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value ) * Time.deltaTime);
+            }
 
-        goalPos = Input.mousePosition;
-        transform.LookAt(goalPos);
-        joyMovementSpeed = movementSpeed * (Vector3.Distance(transform.position, goalPos) / 2);
-        transform.position = Vector3.Lerp(transform.position, goalPos, movementSpeed * Time.deltaTime);
-
+        }
     }
+
+    public void ChangeMovement() {
+        if(movementType == "wasd") {
+            movementType = "joystick";
+            Debug.Log("Movement type is: " + movementType);
+        }
+
+        else if(movementType == "joystick") {
+            movementType = "moveToPoint";
+            Debug.Log("Movement type is: " + movementType);
+        }
+
+        else if(movementType == "moveToPoint") {
+            movementType = "wasd";
+            Debug.Log("Movement type is: " + movementType);
+        }
+    }
+
 }
