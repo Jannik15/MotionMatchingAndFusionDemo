@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 public class Movement : MonoBehaviour
 {
@@ -16,12 +19,14 @@ public class Movement : MonoBehaviour
     private MotionMatching mm;
 
 	// --- Public
+    [Tooltip("In degrees")] public float rotateToMoveThreshold = 15f;
+    public float rotateSpeed = 2.0f;
     public FloatReference lerpTime, movementSpeed, movementMultiplier;
 
     // --- Private 
-    private Vector3 prevPos, goalPos;
+    private Vector3 prevPos, prevRot, goalPos;
 
-    private float speed;
+    private float speed, angSpeed, rotationValue;
 
     private string movementType;
 
@@ -32,6 +37,7 @@ public class Movement : MonoBehaviour
     private void FixedUpdate()
     {
 	    UpdateSpeed();
+        UpdateAngularSpeed();
         switch (movementType) {
             case "wasd":
                 KeyBoardMove();
@@ -66,14 +72,25 @@ public class Movement : MonoBehaviour
 	    prevPos = transform.position;
     }
 
+    private void UpdateAngularSpeed()
+    {
+        angSpeed = (transform.rotation.eulerAngles - prevRot).magnitude / Time.fixedDeltaTime;
+        prevRot = transform.rotation.eulerAngles;
+    }
+
     public float GetSpeed()
     {
 	    return speed;
     }
 
+    public float GetAngularSpeed()
+    {
+        return angSpeed;
+    }
+
     public Trajectory GetMovementTrajectory()
     {
-		TrajectoryPoint[] points = new TrajectoryPoint[mm.pointsPerTrajectory];
+        TrajectoryPoint[] points = new TrajectoryPoint[mm.pointsPerTrajectory];
 		for (int i = 0; i < points.Length; i++)
 		{
 			if (i > 0)
@@ -82,8 +99,8 @@ public class Movement : MonoBehaviour
 				Quaternion lookRotation = transform.position + transform.forward != Vector3.zero
 					? Quaternion.LookRotation(transform.position + transform.forward) : Quaternion.identity; // Shorthand if : else
 
-				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, movementSpeed.value/*(mm.framesBetweenTrajectoryPoints / 100.0f)*/ * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
-				Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed, 0.0f, 1.0f);
+				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, movementSpeed.value/*(mm.framesBetweenTrajectoryPoints / 100.0f)*/ * i) * Vector3.forward * Mathf.Clamp(speed + 0.1f, 0.0f, 1.0f);
+				Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed + 0.1f, 0.0f, 1.0f);
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}
 			else
@@ -97,14 +114,21 @@ public class Movement : MonoBehaviour
 	    return (transform.position - prevPos) / Time.fixedDeltaTime;
     }
 
-    public void KeyBoardMove() {
+    public void KeyBoardMove()
+    {
+        rotationValue = (rotationValue + (Input.GetAxis("Horizontal") * rotateSpeed)) % 360;
+        Vector3 newRot = new Vector3(0.0f, rotationValue, 0.0f);
+
+        //Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(0.0f, 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
+
+        Quaternion rotation = Quaternion.Euler(0.0f,newRot.y,0.0f);
+        
+        transform.rotation = rotation /*Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime)*/;
         prevPos = transform.position;
-	    Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
-        Quaternion rotation = newPos - transform.position != Vector3.zero
-            ? Quaternion.LookRotation(newPos - transform.position) : Quaternion.identity; // Shorthand if : else
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * speed);
-        //transform.LookAt(newPos);
-        transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
+        prevRot = transform.rotation.eulerAngles;
+
+        if (Input.GetAxis("Vertical") >= 0.1f)
+            transform.position = prevPos + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value; // Just draw curves simulating the movement, instead of actually moving the player
     }
     public void MoveToMouse() {
         if(Input.GetMouseButtonDown(0)) {
@@ -115,28 +139,40 @@ public class Movement : MonoBehaviour
                 goalPos = hit.point;
             }
         }
-        
-            if(Vector3.Distance(transform.position, goalPos) > 0.2f) {
-                    transform.LookAt(goalPos);
-                    transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.deltaTime);
-            }
-                
-            
-        
 
+        if(Vector3.Distance(transform.position, goalPos) > 0.2f) {
+            //transform.LookAt(goalPos);
 
+            Quaternion rotation = goalPos - transform.position != Vector3.zero
+                ? Quaternion.LookRotation(goalPos - transform.position) : Quaternion.identity; // Shorthand if : else
+            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * speed + 0.1f);
+            //transform.LookAt(newPos);
+            prevPos = transform.position;
+            prevRot = transform.rotation.eulerAngles;
+
+            if (CheckRotateToMove(rotation))
+                transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.fixedDeltaTime);
+        }
     }
 
     public void ClickAndDrag() {
         if(Input.GetMouseButton(0)) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            if(Physics.Raycast(ray, out hit)) {
-                goalPos = hit.point;
-                transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
-                transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value ) * Time.deltaTime);
-            }
 
+            if(Physics.Raycast(ray, out hit)) {
+                goalPos = new Vector3(hit.point.x, 0.0f, hit.point.z);
+
+                Quaternion rotation = goalPos - transform.position != Vector3.zero
+                    ? Quaternion.LookRotation(goalPos - transform.position) : Quaternion.identity; // Shorthand if : else
+                //transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
+
+                transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * speed + 0.1f);
+
+
+                if (CheckRotateToMove(rotation))
+                    transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value ) * Time.fixedDeltaTime);
+            }
         }
     }
 
@@ -155,6 +191,37 @@ public class Movement : MonoBehaviour
             movementType = "wasd";
             Debug.Log("Movement type is: " + movementType);
         }
+    }
+
+    private bool CheckRotateToMove(Quaternion rotation)
+    {
+        bool tempBool = false;
+        float rotationChecker = transform.rotation.eulerAngles.y;
+        float upperBound = (rotationChecker + rotateToMoveThreshold) % 360f, lowerBound = rotationChecker - rotateToMoveThreshold;
+
+        if (rotationChecker - rotateToMoveThreshold < 0)
+        {
+            rotationChecker += 360;
+            lowerBound = rotationChecker;
+        } 
+        
+        if (lowerBound > upperBound)
+        {
+            if (rotation.eulerAngles.y <= upperBound)
+            {
+                lowerBound = upperBound - rotateToMoveThreshold * 2;
+            }
+            else if (rotation.eulerAngles.y >= lowerBound)
+            {
+                upperBound = lowerBound + rotateToMoveThreshold * 2;
+            }
+        }
+
+        if (rotation.eulerAngles.y <= upperBound &&
+            rotation.eulerAngles.y >= lowerBound)
+            tempBool = true;
+        
+        return tempBool;
     }
 
 }

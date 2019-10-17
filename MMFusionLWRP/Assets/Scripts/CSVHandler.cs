@@ -25,7 +25,7 @@ public class CSVHandler
         "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
     };
     private List<string> allClipNames;
-    private List<float> allFrames;
+    private List<int> allFrames;
     private List<MMPose> allPoses;
     private List<TrajectoryPoint> allPoints;
 
@@ -50,7 +50,8 @@ public class CSVHandler
             for (int i = 0; i < poseData.Count; i++)
             {
 	            Matrix4x4 charSpace = new Matrix4x4();
-				charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[i].GetRotation(), Vector3.one);
+                charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[0].GetRotation(), Vector3.one);
+                //charSpace.SetTRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
                 string[] tempLine =
                 {
@@ -58,15 +59,23 @@ public class CSVHandler
                     clipNames[i], frames[i].ToString(spec, ci),
 
                     // Pose data
-                    poseData[i].GetRootPos().x.ToString(spec, ci),
-                    poseData[i].GetRootPos().z.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRootPos()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRootPos()).z.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).x.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).y.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).z.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).x.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).y.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).z.ToString(spec, ci),
+
+                    // TrajectoryPoint data
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetPoint()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetPoint()).z.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetForward()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetForward()).z.ToString(spec, ci)
 					
+                    //poseData[i].GetRootPos().x.ToString(spec, ci),
+                    //poseData[i].GetRootPos().z.ToString(spec, ci),
                     //poseData[i].GetRootVelocity().x.ToString(spec, ci),
                     //poseData[i].GetRootVelocity().z.ToString(spec, ci),
                     //poseData[i].GetLefFootVelocity().x.ToString(spec, ci), 
@@ -75,12 +84,6 @@ public class CSVHandler
                     //poseData[i].GetRightFootVelocity().x.ToString(spec, ci), 
                     //poseData[i].GetRightFootVelocity().y.ToString(spec, ci), 
                     //poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
-
-                    // TrajectoryPoint data
-                    pointData[i].GetRootPoint().GetPoint().x.ToString(spec, ci), 
-                    pointData[i].GetRootPoint().GetPoint().z.ToString(spec, ci),
-                    pointData[i].GetRootPoint().GetForward().x.ToString(spec, ci), 
-                    pointData[i].GetRootPoint().GetForward().z.ToString(spec, ci)
                 };
 
                 file.WriteLine(string.Join(",", tempLine));
@@ -94,7 +97,7 @@ public class CSVHandler
         bool ignoreHeaders = true;
 
         allClipNames = new List<string>();
-        allFrames = new List<float>();
+        allFrames = new List<int>();
         allPoses = new List<MMPose>();
         allPoints = new List<TrajectoryPoint>();
         List<FeatureVector> featuresFromCSV = new List<FeatureVector>();
@@ -113,7 +116,7 @@ public class CSVHandler
             if (!ignoreHeaders) // Iterates for each row in the CSV aside from the first (header) row
             {
                 allClipNames.Add(tempString[0]);
-                allFrames.Add(float.Parse(tempString[1], format));
+                allFrames.Add(int.Parse(tempString[1], format));
                 allPoses.Add(new MMPose(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
                     new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
                     new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format))));

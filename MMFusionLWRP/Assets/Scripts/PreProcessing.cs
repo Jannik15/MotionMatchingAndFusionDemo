@@ -87,33 +87,6 @@ public class PreProcessing
 	    }
 	    return new Quaternion(vectorValues[0], vectorValues[1], vectorValues[2], vectorValues[3]);
     }
-    public Vector3 CalculateVelocityFromVectors(Vector3 currentPos, Vector3 prevPos)
-    {
-        return (currentPos - prevPos) * sampleRate;
-    }
-
-    //public string[] GenerateClipTags(AnimationClip[] allClips, string[] allTags)  // TODO: Remove all this code, if not needed? - YYY
-    //{
-    //    string[] tempClipTags = new string[allClips.Length];
-
-    //    for (int i = 0; i < allClips.Length; i++)
-    //    {
-    //        for (int j = 0; j < allTags.Length; j++)
-    //        {
-    //            if (allClips[i].name.ToLower().Contains(allTags[j].ToLower()))
-    //            {
-    //                tempClipTags[i] += "#" + allTags[j].ToLower();
-    //            }
-    //        }
-
-    //        if (tempClipTags[i] == null)
-    //        {
-    //            tempClipTags[i] = "#other";
-    //        }
-    //    }
-    //    debugFloat.Log(tempClipTags[0]);
-    //    return tempClipTags;
-    //}
 
     public AnimationClip[] FindClipsFromAnimatorController()
     {

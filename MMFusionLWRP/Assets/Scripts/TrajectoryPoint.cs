@@ -23,18 +23,11 @@ public class TrajectoryPoint
     {
         return forward;
     }
-    public float GetDiff(TrajectoryPoint otherPoint)
+    public float GetDiffWithWeights(TrajectoryPoint otherPoint, Matrix4x4 newSpace, float pointWeight, float forwardWeight)
     {
         float diff = 0;
-        diff += Vector3.Distance(point, otherPoint.point);
-        diff += Vector3.Angle(forward, otherPoint.forward);
-        return diff;
-    }
-    public float GetDiffWithWeights(TrajectoryPoint otherPoint, float pointWeight, float forwardWeight)
-    {
-        float diff = 0;
-        diff += Vector3.Distance(point, otherPoint.point) / pointWeight;
-        diff += Vector3.Angle(forward, otherPoint.forward) / forwardWeight;
+        diff += Vector3.Distance(newSpace.MultiplyPoint3x4(GetPoint()), newSpace.MultiplyPoint3x4(otherPoint.GetPoint())) / pointWeight;
+        diff += Vector3.Angle(newSpace.MultiplyPoint3x4(GetForward()), newSpace.MultiplyPoint3x4(otherPoint.GetForward())) / forwardWeight;
         return diff;
     }
 }

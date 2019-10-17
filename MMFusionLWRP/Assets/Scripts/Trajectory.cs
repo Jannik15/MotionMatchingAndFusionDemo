@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,10 @@ public class Trajectory
     private TrajectoryPoint[] trajectoryPoints;
     private TrajectoryPoint rootPoint;
     private Quaternion rootQ;
+
+    
+    private static int factor = 10; // Needs to reflect differences between feet, compared trajectories, and weighted velocities
+    // idlefootdist = 0.17, weighted velocities: 
     public Trajectory(TrajectoryPoint[] _trajectoryPoints)
     {
         trajectoryPoints = _trajectoryPoints;
@@ -29,23 +34,14 @@ public class Trajectory
     {
 	    return rootQ;
     }
-
-    public float CompareTrajectories(Trajectory otherTrajectory)
+    public float CompareTrajectories(Trajectory otherTrajectory, Matrix4x4 newSpace, float pointWeight, float forwardWeight)
     {
         float dist = 0;
         for (int i = 0; i < trajectoryPoints.Length; i++)
         {
-            dist += trajectoryPoints[i].GetDiff(otherTrajectory.trajectoryPoints[i]);
+            dist += trajectoryPoints[i].GetDiffWithWeights(otherTrajectory.trajectoryPoints[i], newSpace, pointWeight, forwardWeight);
         }
-        return dist;
-    }
-    public float CompareTrajectories(Trajectory otherTrajectory, float pointWeight, float forwardWeight)
-    {
-        float dist = 0;
-        for (int i = 0; i < trajectoryPoints.Length; i++)
-        {
-            dist += trajectoryPoints[i].GetDiffWithWeights(otherTrajectory.trajectoryPoints[i], pointWeight, forwardWeight);
-        }
+        // Debug.Log("Compare Trajectories distance is: " + dist);
         return dist;
     }
 }

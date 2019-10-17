@@ -36,14 +36,15 @@ MonoBehaviour:
   _preProcess: 1
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
-  queryRateInFrames: 10
-  candidatesPerMisc: 0
+  idleThreshold: 0.1
   _isMotionMatching: 0
   _isIdling: 0
-  idleThreshold: 0.1
+  queryRateInFrames: 10
+  candidatesPerMisc: 0
   weightLFootVel: 1
   weightRFootVel: 1
   weightRootVel: 1
+  weightFeetPos: 1
   weightTrajPoints: 1
   weightTrajForwards: 1
 --- !u!114 &1861943230
@@ -59,16 +60,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lerpTime:
-    UseConstant: 0
-    ConstantValue: 1
+    UseUnique: 0
+    UniqueValue: 0
     variable: {fileID: 11400000, guid: bec0ca293c749224cbf6aab8e6597e25, type: 2}
   movementSpeed:
-    UseConstant: 0
-    ConstantValue: 0.01
+    UseUnique: 0
+    UniqueValue: 0
     variable: {fileID: 11400000, guid: 588fd1d65d9194242915fb9c4c8206d0, type: 2}
   movementMultiplier:
-    UseConstant: 1
-    ConstantValue: 0
+    UseUnique: 0
+    UniqueValue: 0
     variable: {fileID: 0}
 --- !u!1001 &7104117827558462459
 PrefabInstance:
