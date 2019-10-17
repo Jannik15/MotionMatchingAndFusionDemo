@@ -132,7 +132,7 @@ public class MotionMatching : MonoBehaviour
 				// Position
 			    Gizmos.color = Color.red;
                 Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-                Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : movement.posHolder,
+                Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
 	                movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
                 // Forward
