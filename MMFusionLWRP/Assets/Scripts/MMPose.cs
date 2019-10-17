@@ -22,11 +22,13 @@ public class MMPose
         return rFootPos;
     }
 
-    public float GetFeetDistance(MMPose otherFeet)
+    public float GetFeetDistance(MMPose otherFeet, Matrix4x4 newSpace, float feetWeight)
     {
         float distance = 0;
-        distance += Vector3.Distance(GetLeftFootPos(), otherFeet.GetLeftFootPos());
-        distance += Vector3.Distance(GetRightFootPos(), otherFeet.GetRightFootPos());
+        //distance += Vector3.Distance(newSpace.MultiplyPoint3x4(GetLeftFootPos()), newSpace.MultiplyPoint3x4(otherFeet.GetLeftFootPos())) / feetWeight;
+        //distance += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRightFootPos()), newSpace.MultiplyPoint3x4(otherFeet.GetRightFootPos())) / feetWeight;
+        distance += Vector3.Distance(GetLeftFootPos(), otherFeet.GetLeftFootPos()) / feetWeight;
+        distance += Vector3.Distance(GetRightFootPos(), otherFeet.GetRightFootPos()) / feetWeight;
         return distance;
     }
 }

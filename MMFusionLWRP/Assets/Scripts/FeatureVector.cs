@@ -4,13 +4,13 @@ public class FeatureVector
 {
 	private int id;
 	private string clipName;
-	private float frame;
+	private int frame;
 	private int allFrames;
     private MMPose pose;
     private Trajectory trajectory;
     private Vector3 rootVel, lFootVel, rFootVel;
 
-    public FeatureVector(MMPose _pose, Trajectory _trajectory, int _id, string _clipName, float _frame)
+    public FeatureVector(MMPose _pose, Trajectory _trajectory, int _id, string _clipName, int _frame)
     {
         pose = _pose;
         trajectory = _trajectory;
@@ -40,7 +40,7 @@ public class FeatureVector
     {
         return clipName;
     }
-    public float GetFrame()
+    public int GetFrame()
     {
         return frame;
     }
@@ -79,31 +79,28 @@ public class FeatureVector
         return trajectory;
     }
 
-    public void CalculateVelocity(MMPose previousPose, float sampleRate)
+    public void CalculateVelocity(MMPose previousPose, Matrix4x4 newSpace, float sampleRate)
     {
-	    rootVel = (pose.GetRootPos() - previousPose.GetRootPos()) * sampleRate;
-		lFootVel = (pose.GetLeftFootPos() - previousPose.GetLeftFootPos()) * sampleRate;
-		rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
+	 //   rootVel = (newSpace.MultiplyPoint3x4(pose.GetRootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetRootPos())) * sampleRate;
+		//lFootVel = (newSpace.MultiplyPoint3x4(pose.GetLeftFootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetLeftFootPos())) * sampleRate;
+  //      rFootVel = (newSpace.MultiplyPoint3x4(pose.GetRightFootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetRightFootPos())) * sampleRate;
+        rootVel = (pose.GetRootPos() - previousPose.GetRootPos()) * sampleRate;
+        lFootVel = (pose.GetLeftFootPos() - previousPose.GetLeftFootPos()) * sampleRate;
+        rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
     }
-
-    public float ComparePoses(FeatureVector candidateVector)
+    public float ComparePoses(FeatureVector candidateVector, Matrix4x4 newSpace, float weightLFootVel, float weightRFootVel, float weightRootVel)
     {
 	    float difference = 0;
+        //   difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetLeftFootVelocity()) * weightLFootVel, 
+        //    newSpace.MultiplyPoint3x4(candidateVector.GetLeftFootVelocity()) * weightLFootVel);
+        //difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRightFootVelocity()) * weightRFootVel, 
+        // newSpace.MultiplyPoint3x4(candidateVector.GetRightFootVelocity()) * weightRFootVel);
+        //difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRootVelocity()) * weightRootVel, 
+        // newSpace.MultiplyPoint3x4(candidateVector.GetRootVelocity()) * weightRootVel);
 
-        difference += Vector3.Distance(lFootVel, candidateVector.GetLeftFootVelocity());
-	    difference += Vector3.Distance(rFootVel, candidateVector.GetRightFootVelocity());
-	    difference += Vector3.Distance(rootVel, candidateVector.GetRootVelocity());
-
-	    return difference;
-    }
-    public float ComparePoses(FeatureVector candidateVector, float weightLFootVel, float weightRFootVel, float weightRootVel)
-    {
-	    float difference = 0;
-
-        difference += Vector3.Distance(lFootVel * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
-	    difference += Vector3.Distance(rFootVel * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);
-	    difference += Vector3.Distance(rootVel * weightRootVel, candidateVector.GetRootVelocity() * weightRootVel);
-
-	    return difference;
+        difference += Vector3.Distance(GetLeftFootVelocity() * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
+        difference += Vector3.Distance(GetRightFootVelocity() * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);
+        difference += Vector3.Distance(GetRootVelocity() * weightRootVel, candidateVector.GetRootVelocity() * weightRootVel);
+        return difference;
     }
 }

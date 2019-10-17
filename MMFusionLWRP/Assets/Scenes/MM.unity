@@ -289,7 +289,7 @@ Transform:
   m_GameObject: {fileID: 885904220}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.87, y: 0.8637379, z: 0.03148693}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -573,14 +573,15 @@ MonoBehaviour:
   _preProcess: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
-  queryRateInFrames: 10
-  candidatesPerMisc: 30
+  idleThreshold: 0.1
   _isMotionMatching: 0
   _isIdling: 0
-  idleThreshold: 0.1
+  queryRateInFrames: 10
+  candidatesPerMisc: 30
   weightLFootVel: 1
   weightRFootVel: 1
   weightRootVel: 1
+  weightFeetPos: 1
   weightTrajPoints: 1
   weightTrajForwards: 1
 --- !u!114 &1861943230
