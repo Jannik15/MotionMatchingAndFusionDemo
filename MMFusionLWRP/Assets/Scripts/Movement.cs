@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 public class Movement : MonoBehaviour
 {
@@ -17,12 +20,13 @@ public class Movement : MonoBehaviour
 
 	// --- Public
     [Tooltip("In degrees")] public float rotateToMoveThreshold = 15f;
+    public float rotateSpeed = 2.0f;
     public FloatReference lerpTime, movementSpeed, movementMultiplier;
 
     // --- Private 
     private Vector3 prevPos, prevRot, goalPos;
 
-    private float speed, angSpeed;
+    private float speed, angSpeed, rotationValue;
 
     private string movementType;
 
@@ -110,18 +114,21 @@ public class Movement : MonoBehaviour
 	    return (transform.position - prevPos) / Time.fixedDeltaTime;
     }
 
-    public void KeyBoardMove() {
+    public void KeyBoardMove()
+    {
+        rotationValue = (rotationValue + (Input.GetAxis("Horizontal") * rotateSpeed)) % 360;
+        Vector3 newRot = new Vector3(0.0f, rotationValue, 0.0f);
 
-        Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
-        Quaternion rotation = newPos - transform.position != Vector3.zero
-            ? Quaternion.LookRotation(newPos - transform.position) : Quaternion.identity; // Shorthand if : else
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * speed + 0.1f);
-        //transform.LookAt(newPos);
+        //Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(0.0f, 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
+
+        Quaternion rotation = Quaternion.Euler(0.0f,newRot.y,0.0f);
+        
+        transform.rotation = rotation /*Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime)*/;
         prevPos = transform.position;
         prevRot = transform.rotation.eulerAngles;
 
-        if (CheckRotateToMove(rotation))
-            transform.position = newPos; // Just draw curves simulating the movement, instead of actually moving the player
+        if (Input.GetAxis("Vertical") >= 0.1f)
+            transform.position = prevPos + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value; // Just draw curves simulating the movement, instead of actually moving the player
     }
     public void MoveToMouse() {
         if(Input.GetMouseButtonDown(0)) {
@@ -144,9 +151,8 @@ public class Movement : MonoBehaviour
             prevRot = transform.rotation.eulerAngles;
 
             if (CheckRotateToMove(rotation))
-                transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value) * Time.fixedDeltaTime);
         }
-
     }
 
     public void ClickAndDrag() {
@@ -167,7 +173,6 @@ public class Movement : MonoBehaviour
                 if (CheckRotateToMove(rotation))
                     transform.position = Vector3.Lerp(transform.position, goalPos, (movementSpeed.value * movementMultiplier.value ) * Time.fixedDeltaTime);
             }
-
         }
     }
 
@@ -211,8 +216,6 @@ public class Movement : MonoBehaviour
                 upperBound = lowerBound + rotateToMoveThreshold * 2;
             }
         }
-
-        //Debug.Log(rotation.eulerAngles.y + " " + lowerBound + " " + upperBound);
 
         if (rotation.eulerAngles.y <= upperBound &&
             rotation.eulerAngles.y >= lowerBound)
