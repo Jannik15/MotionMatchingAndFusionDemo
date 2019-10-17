@@ -8,8 +8,6 @@ public class CSVHandler
 {
     private string path = "Assets/Resources/MotionMatching";
     private string fileName = "AnimData.csv";
-    private string mmFileName = "MMAnimData.csv";
-    private string idleFileName = "IdleAnimData.csv";
     private static string[] csvLabels =
     {
         // General info
