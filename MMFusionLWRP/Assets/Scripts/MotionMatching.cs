@@ -42,7 +42,6 @@ public class MotionMatching : MonoBehaviour
 	    weightFeetPos = 1.0f, weightTrajPoints = 1.0f, weightTrajForwards = 1.0f;
 
     // --- Debugstuff
-    private List<Gizmos> gizmosToKeep;
     private int animIterator = -1;
     private IEnumerator currentEnumerator;
 
@@ -134,14 +133,6 @@ public class MotionMatching : MonoBehaviour
     {
         if (_playAnimationMode)
 	    {
-		    //for (int i = 0; i < featureVectors.Count; i++)
-		    //{
-		    // if (!TagChecker(featureVectors[i].GetClipName(), currentState))
-		    //  continue;
-		    // //Debug.Log("FV passed: ID " + featureVectors[i].GetID() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID() + " frames.");
-		    // if ((featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < currentID - queryRateInFrames) &&
-		    //     featureVectors[i].GetFrame() + queryRateInFrames < featureVectors[i].GetFrameCountForID() && featureVectors[i].GetFrame() != 0)
-		    //{
 		    if (Input.GetKeyDown(KeyCode.Space))
 		    {
 			    if (currentEnumerator != null)
@@ -157,8 +148,13 @@ public class MotionMatching : MonoBehaviour
     {
 	    if (Application.isPlaying)
 	    {
-		    Matrix4x4 newSpace = transform.worldToLocalMatrix.inverse;
-		    Gizmos.color = Color.red;
+		    Matrix4x4 invCharSpace = transform.worldToLocalMatrix.inverse;
+		    Matrix4x4 charSpace = transform.localToWorldMatrix;
+		    Matrix4x4 newSpace = new Matrix4x4();
+		    newSpace.SetTRS(transform.position, Quaternion.identity, transform.lossyScale);
+
+
+		    Gizmos.color = Color.red; // Movement Trajectory
             for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
 		    {
 				// Position
@@ -171,20 +167,34 @@ public class MotionMatching : MonoBehaviour
 					movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
 		    }
 
-            Gizmos.color = Color.green;
-
+            Gizmos.color = Color.green; // Animation Trajectory
             for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
 		    {
 				// Position
-				Gizmos.DrawWireSphere(newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 0.2f);
+				Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 0.2f);
 				if (i != 0)
-					Gizmos.DrawLine(newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i-1].GetPoint()), 
-						newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()));
+					Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint()), 
+						invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()));
 
 				// Forward
-				Gizmos.DrawLine(newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 
+				Gizmos.DrawLine(charSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()),
 					newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward()));
 		    }
+
+   //         Gizmos.color = Color.magenta;
+			//Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRootPos()), 0.1f);
+			//Gizmos.color = Color.yellow; // Pose positions
+   //         Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetLeftFootPos()), 0.1f);
+   //         Gizmos.color = Color.blue;
+			//Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRightFootPos()), 0.1f);
+
+			//Gizmos.color = Color.cyan;
+			//Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetRootVelocity()));
+			//Gizmos.color = Color.gray;
+			//Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetLeftFootVelocity()));
+			//Gizmos.color = Color.white;
+   //         Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetRightFootVelocity()));
+
         }
     }
 
@@ -234,7 +244,6 @@ public class MotionMatching : MonoBehaviour
     }
     private IEnumerator PlayAnimation()
     {
-	    int tempFrames = 0;
 	    animIterator++;
 	    if (animIterator == allClips.Length)
 	    {
