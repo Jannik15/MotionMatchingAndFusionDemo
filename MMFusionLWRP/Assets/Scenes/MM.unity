@@ -570,7 +570,8 @@ MonoBehaviour:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 0
+  _preProcess: 1
+  _playAnimationMode: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
   idleThreshold: 0.1
@@ -609,7 +610,6 @@ MonoBehaviour:
     UseUnique: 0
     UniqueValue: 0
     variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
-  posHolder: {x: 0, y: 0, z: 0}
 --- !u!1 &2016575769
 GameObject:
   m_ObjectHideFlags: 0

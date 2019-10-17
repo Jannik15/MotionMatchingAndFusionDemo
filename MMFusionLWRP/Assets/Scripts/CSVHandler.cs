@@ -48,7 +48,8 @@ public class CSVHandler
             for (int i = 0; i < poseData.Count; i++)
             {
 	            Matrix4x4 charSpace = new Matrix4x4();
-				charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[i].GetRotation(), Vector3.one);
+                charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[0].GetRotation(), Vector3.one);
+                //charSpace.SetTRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
                 string[] tempLine =
                 {
@@ -56,15 +57,23 @@ public class CSVHandler
                     clipNames[i], frames[i].ToString(spec, ci),
 
                     // Pose data
-                    poseData[i].GetRootPos().x.ToString(spec, ci),
-                    poseData[i].GetRootPos().z.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRootPos()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(poseData[i].GetRootPos()).z.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).x.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).y.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).z.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).x.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).y.ToString(spec, ci),
                     charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).z.ToString(spec, ci),
+
+                    // TrajectoryPoint data
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetPoint()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetPoint()).z.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetForward()).x.ToString(spec, ci),
+                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetForward()).z.ToString(spec, ci)
 					
+                    //poseData[i].GetRootPos().x.ToString(spec, ci),
+                    //poseData[i].GetRootPos().z.ToString(spec, ci),
                     //poseData[i].GetRootVelocity().x.ToString(spec, ci),
                     //poseData[i].GetRootVelocity().z.ToString(spec, ci),
                     //poseData[i].GetLefFootVelocity().x.ToString(spec, ci), 
@@ -73,12 +82,6 @@ public class CSVHandler
                     //poseData[i].GetRightFootVelocity().x.ToString(spec, ci), 
                     //poseData[i].GetRightFootVelocity().y.ToString(spec, ci), 
                     //poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
-
-                    // TrajectoryPoint data
-                    pointData[i].GetRootPoint().GetPoint().x.ToString(spec, ci), 
-                    pointData[i].GetRootPoint().GetPoint().z.ToString(spec, ci),
-                    pointData[i].GetRootPoint().GetForward().x.ToString(spec, ci), 
-                    pointData[i].GetRootPoint().GetForward().z.ToString(spec, ci)
                 };
 
                 file.WriteLine(string.Join(",", tempLine));

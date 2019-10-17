@@ -368,11 +368,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: _preProcess
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: _playAnimationMode
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: idleThreshold
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: queryRateInFrames
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: candidatesPerMisc
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: lerpTime.UseUnique
@@ -385,6 +397,10 @@ PrefabInstance:
     - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: movementMultiplier.UseUnique
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1706317325, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
