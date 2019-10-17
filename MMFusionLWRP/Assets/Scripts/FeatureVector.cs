@@ -81,12 +81,12 @@ public class FeatureVector
 
     public void CalculateVelocity(MMPose previousPose, Matrix4x4 newSpace, float sampleRate)
     {
-	 //   rootVel = (newSpace.MultiplyPoint3x4(pose.GetRootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetRootPos())) * sampleRate;
-		//lFootVel = (newSpace.MultiplyPoint3x4(pose.GetLeftFootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetLeftFootPos())) * sampleRate;
-  //      rFootVel = (newSpace.MultiplyPoint3x4(pose.GetRightFootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetRightFootPos())) * sampleRate;
-        rootVel = (pose.GetRootPos() - previousPose.GetRootPos()) * sampleRate;
-        lFootVel = (pose.GetLeftFootPos() - previousPose.GetLeftFootPos()) * sampleRate;
-        rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
+        rootVel = pose.GetRootPos() - previousPose.GetRootPos() * sampleRate;
+        lFootVel = (newSpace.MultiplyPoint3x4(pose.GetLeftFootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetLeftFootPos())) * sampleRate;
+        rFootVel = (newSpace.MultiplyPoint3x4(pose.GetRightFootPos()) - newSpace.MultiplyPoint3x4(previousPose.GetRightFootPos())) * sampleRate;
+        //rootVel = (pose.GetRootPos() - previousPose.GetRootPos()) * sampleRate;
+        //lFootVel = (pose.GetLeftFootPos() - previousPose.GetLeftFootPos()) * sampleRate;
+        //rFootVel = (pose.GetRightFootPos() - previousPose.GetRightFootPos()) * sampleRate;
     }
     public float ComparePoses(FeatureVector candidateVector, Matrix4x4 newSpace, float weightLFootVel, float weightRFootVel, float weightRootVel)
     {
