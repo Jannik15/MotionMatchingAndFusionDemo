@@ -503,6 +503,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dc9a2cc157b77f4392ce664c05fe5ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rotateToMoveThreshold: 15
   lerpTime:
     UseUnique: 0
     UniqueValue: 0
@@ -515,6 +516,7 @@ MonoBehaviour:
     UseUnique: 0
     UniqueValue: 0
     variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
+  posHolder: {x: 0, y: 0, z: 0}
 --- !u!1 &2016575769
 GameObject:
   m_ObjectHideFlags: 0

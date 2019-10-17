@@ -132,7 +132,7 @@ public class MotionMatching : MonoBehaviour
 				// Position
 			    Gizmos.color = Color.red;
                 Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-                Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
+                Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : movement.posHolder,
 	                movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
                 // Forward
@@ -271,7 +271,7 @@ public class MotionMatching : MonoBehaviour
             float candidateDif = velDif + feetPosDif;
             if (candidateDif < currentDif)
             {
-				Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
+				//Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
                 bestId = candidate.GetID();
                 currentDif = candidateDif;
             }
