@@ -190,7 +190,7 @@ public class Movement : MonoBehaviour
             }
         }
 
-        Debug.Log(rotation.eulerAngles.y + " " + lowerBound + " " + upperBound);
+        //Debug.Log(rotation.eulerAngles.y + " " + lowerBound + " " + upperBound);
 
         if (rotation.eulerAngles.y <= upperBound &&
             rotation.eulerAngles.y >= lowerBound)
