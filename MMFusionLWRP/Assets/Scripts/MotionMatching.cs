@@ -16,32 +16,35 @@ public class MotionMatching : MonoBehaviour
     // --- Collections
     private List<FeatureVector> featureVectors;
     private AnimationClip[] allClips;
-    //private string[] allClipTags;     // TODO: Remove all out commented code if not needed anymore? - YYY
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
-    //public ClipTags tagContainer; // put ref to chosen tag container scriptable object
     public string[] jointNames;
-
-    //public static string[] movementTags = {"Idle", "Walk", "Run"};
-    public string[][] movementTags =    // TODO: Changed the above 'movementTag' to this (So we can easily define the different states) - YYY
+    public string[][] movementTags =
     {
         new []{ "Idle"},                // State 0
         new []{ "Walk", "Run" }         // State 1
     };
-    private int currentState = 0;
+
+    private List<bool> enumeratorBools;
 
     // --- Variables 
-    public bool _preProcess;
+    public bool _preProcess, _playAnimationMode;
     public int pointsPerTrajectory = 4, framesBetweenTrajectoryPoints = 10;
-    [SerializeField] private int queryRateInFrames = 10, candidatesPerMisc;
-    [SerializeField] private bool _isMotionMatching, _isIdling;
     public float idleThreshold = 0.10f;
-    private List<bool> enumeratorBools;
+    [SerializeField] private bool _isMotionMatching, _isIdling;
+    [SerializeField] private int queryRateInFrames = 10, candidatesPerMisc = 10;
+
     private AnimationClip currentClip;
-    private int currentFrame, currentID = 0;
+    private int currentFrame, currentID, currentState;
 
     // --- Weights
     [Range(0, 1)]
-    public float weightLFootVel = 1.0f, weightRFootVel = 1.0f, weightRootVel = 1.0f, weightTrajPoints = 1.0f, weightTrajForwards = 1.0f;
+    public float weightLFootVel = 1.0f, weightRFootVel = 1.0f, weightRootVel = 1.0f, 
+	    weightFeetPos = 1.0f, weightTrajPoints = 1.0f, weightTrajForwards = 1.0f;
+
+    // --- Debugstuff
+    private List<Gizmos> gizmosToKeep;
+    private int animIterator = -1;
+    private IEnumerator currentEnumerator;
 
     private void Awake() // Load animation data
     {
@@ -50,7 +53,6 @@ public class MotionMatching : MonoBehaviour
         preProcessing = new PreProcessing();
 
         allClips = animContainer.animationClips;
-        //allClipTags = tagContainer.clipTags;
         if (allClips == null)
             Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
 
@@ -59,8 +61,6 @@ public class MotionMatching : MonoBehaviour
         {
             animContainer.animationClips = preProcessing.FindClipsFromAnimatorController();
             allClips = animContainer.animationClips;
-            //tagContainer.clipTags = preProcessing.GenerateClipTags(allClips, movementTags);
-            //allClipTags = tagContainer.clipTags;
             preProcessing.Preprocess(allClips, jointNames);
         }
 #endif
@@ -87,9 +87,9 @@ public class MotionMatching : MonoBehaviour
         for (int i = 0; i < featureVectors.Count; i++)
         {
 			if (i != 0)
-				featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), allClips[0].frameRate);
-			else
-				featureVectors[i].CalculateVelocity(featureVectors[i].GetPose(), allClips[0].frameRate); // Velocity is 0 for frame 0 of all animations
+				featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+			else // Velocity is 0 for frame 0 of all animations
+                featureVectors[i].CalculateVelocity(featureVectors[i].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
         }
         enumeratorBools = AddEnumeratorBoolsToList();
     }
@@ -97,55 +97,99 @@ public class MotionMatching : MonoBehaviour
     private void Start()
     {
         // --- Instantiation
-		UpdateAnimation(0, 0);
-        StartCoroutine(MotionMatch());
+        if (!_playAnimationMode)
+        {
+	        UpdateAnimation(0, 0);
+	        StartCoroutine(MotionMatch());
+        }
     }
 
     private void FixedUpdate()
     {
-        if (movement.GetSpeed() <= idleThreshold)
-        {
-            currentState = 0;
-        }
-        else
-        {
-            currentState = 1;
-        }
-        if (!_isMotionMatching /* && movement.GetSpeed() > idleThreshold*/)
+	    if (!_playAnimationMode)
 	    {
-			StopAllCoroutines();
-		    StartCoroutine(MotionMatch());
-	    }
-        //if (!_isIdling && movement.GetSpeed() <= idleThreshold)
-        //{
-        //    StopAllCoroutines();
-        //    StartCoroutine(Idle());
-        //}
+		    if (movement.GetSpeed() <= idleThreshold)
+		    {
+			    currentState = 0;
+		    }
+		    else
+		    {
+			    currentState = 1;
+		    }
+		    if (!_isMotionMatching /* && movement.GetSpeed() > idleThreshold*/)
+		    {
+			    StopAllCoroutines();
+			    StartCoroutine(MotionMatch());
+		    }
+		    //if (!_isIdling && movement.GetSpeed() <= idleThreshold)
+		    //{
+		    //    StopAllCoroutines();
+		    //    StartCoroutine(Idle());
+		    //}
+        }
     }
+
+#if UNITY_EDITOR
+    private void Update()
+    {
+        if (_playAnimationMode)
+	    {
+		    //for (int i = 0; i < featureVectors.Count; i++)
+		    //{
+		    // if (!TagChecker(featureVectors[i].GetClipName(), currentState))
+		    //  continue;
+		    // //Debug.Log("FV passed: ID " + featureVectors[i].GetID() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID() + " frames.");
+		    // if ((featureVectors[i].GetID() > currentID || featureVectors[i].GetID() < currentID - queryRateInFrames) &&
+		    //     featureVectors[i].GetFrame() + queryRateInFrames < featureVectors[i].GetFrameCountForID() && featureVectors[i].GetFrame() != 0)
+		    //{
+		    if (Input.GetKeyDown(KeyCode.Space))
+		    {
+			    if (currentEnumerator != null)
+				    StopCoroutine(currentEnumerator);
+			    transform.position = Vector3.zero;
+			    StartCoroutine(PlayAnimation());
+		    }
+        }
+    }
+#endif
 
     private void OnDrawGizmos()
     {
 	    if (Application.isPlaying)
 	    {
-		    for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++)
+		    Matrix4x4 newSpace = transform.worldToLocalMatrix.inverse;
+		    Gizmos.color = Color.red;
+            for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
 		    {
 				// Position
-			    Gizmos.color = Color.red;
                 Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
                 Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
 	                movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
                 // Forward
-			    Gizmos.color = Color.blue;
-				Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 
+				Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
 					movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
+		    }
+
+            Gizmos.color = Color.green;
+
+            for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
+		    {
+				// Position
+				Gizmos.DrawWireSphere(newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 0.2f);
+				if (i != 0)
+					Gizmos.DrawLine(newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i-1].GetPoint()), 
+						newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()));
+
+				// Forward
+				Gizmos.DrawLine(newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 
+					newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward()));
 		    }
         }
     }
 
     private void UpdateAnimation(int id, int frame)
     {
-		//Debug.Log("Updating animation (ID): "+ currentID + " -> " + id);
 		for (int i = 0; i < allClips.Length; i++)
 	    {
 		    if (allClips[i].name == featureVectors[id].GetClipName())
@@ -154,7 +198,8 @@ public class MotionMatching : MonoBehaviour
 			    break;
 		    }
 		}
-		animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, frame / currentClip.length); // 0.3f was recommended by Magnus
+		Debug.Log("Updating animation " + currentClip.name + " to frame " + frame + " with ID " + id);
+        animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, frame / currentClip.frameRate); // 0.3f was recommended by Magnus
         currentID = id;
         currentFrame = frame;
     }
@@ -173,6 +218,7 @@ public class MotionMatching : MonoBehaviour
 	    for (int i = 0; i < list.Count; i++)
 		    list[i] = booleanVal;
     }
+
     private IEnumerator MotionMatch()
     {
         SetBoolsInList(enumeratorBools, false);
@@ -182,51 +228,64 @@ public class MotionMatching : MonoBehaviour
 		    currentID += queryRateInFrames;
             List<FeatureVector> candidates = TrajectoryMatching(movement.GetMovementTrajectory());
             int candidateID = PoseMatching(candidates);
-			UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
+			UpdateAnimation(candidateID, featureVectors[candidateID].GetFrame());
             yield return new WaitForSeconds(queryRateInFrames / currentClip.frameRate);
 	    }
     }
-
-    private IEnumerator Idle()
+    private IEnumerator PlayAnimation()
     {
-        SetBoolsInList(enumeratorBools, false);
-        _isIdling = true;
-        while (true)
+	    int tempFrames = 0;
+	    animIterator++;
+	    if (animIterator == allClips.Length)
 	    {
-            int candidateID = PoseMatching(featureVectors);
-            UpdateAnimation(candidateID, (int)featureVectors[candidateID].GetFrame());
-            yield return new WaitForSeconds(queryRateInFrames / currentClip.frameRate);
+		    animIterator = 0;
+		    Debug.Log("Finished playing last animation!");
 	    }
+        for (int i = 0; i < featureVectors.Count; i++)
+	    {
+		    if (featureVectors[i].GetClipName() == allClips[animIterator].name)
+		    {
+			    currentID = i;
+			    break;
+            }
+	    }
+	    int startofIdForClip = currentID;
+	    Debug.Log("Current playing " + allClips[animIterator].name + ", which is " + allClips[animIterator].length + " seconds long!");
+		Debug.Log("While loop condition: Frame " + featureVectors[currentID].GetFrame() + " < " + featureVectors[currentID].GetFrameCountForID() + " && Clip " + featureVectors[currentID].GetClipName() + " == " + allClips[animIterator].name);
+        while (featureVectors[currentID].GetFrame() < featureVectors[currentID].GetFrameCountForID() && featureVectors[currentID].GetClipName() == allClips[animIterator].name)
+        {
+            Debug.Log("Current ID is now " + currentID + ", which started at ID " + startofIdForClip +"!");
+		    UpdateAnimation(currentID, featureVectors[currentID].GetFrame());
+            yield return new WaitForSeconds(queryRateInFrames / currentClip.frameRate);
+            currentID += queryRateInFrames;
+        }
     }
     #endregion
 
     List<FeatureVector> TrajectoryMatching(Trajectory movementTraj)
     {
         List<FeatureVector> candidates = new List<FeatureVector>();
-        FeatureVector[,] possibleCandidates = new FeatureVector[movementTags.Length, candidatesPerMisc];
-        float[,] values = new float[movementTags.Length, candidatesPerMisc];
+        FeatureVector[,] possibleCandidates = new FeatureVector[movementTags[currentState].Length, candidatesPerMisc];
+        float[,] values = new float[movementTags[currentState].Length, candidatesPerMisc];
         int currentMisc = currentState;
-        //Debug.Log("Current ID is " + currentID);
+
         for (int i = 0; i < featureVectors.Count; i++)
 		{
-            //Debug.Log("ID " + i + " with name: " + featureVectors[i].GetClipName() + " compared to state: " + currentState);
-            if (!TagChecker(featureVectors[i].GetClipName(), currentState)
-            ) // TODO: Added this tag checker bool - We need to optimize it maybe. See further down
-            {
+            if (!TagChecker(featureVectors[i].GetClipName(), currentState))
                 continue;
-            }
             //Debug.Log("FV passed: ID " + featureVectors[i].GetID() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID() + " frames.");
             if ((featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
-                 featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID())
+                 featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID() && featureVectors[i].GetFrame() != 0)
             {
-                //for (int j = 0; j < movementTags.Length; j++) // This for loop can be used if looking to consider multiple miscs for a single trajectory match
-                //{
-                //    if (TagChecker(featureVectors[i].GetClipName(), j))
-                //    {
-                //        currentMisc = j;
-                //    }
-                //}
-                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, weightTrajPoints, weightTrajForwards);
+                for (int j = 0; j < movementTags[currentState].Length; j++) // This for loop can be used if looking to consider multiple miscs for the current state during trajectory matching
+                {
+                    if (TagChecker(featureVectors[i].GetClipName(), currentState, j))
+                    {
+	                    currentMisc = j;
+	                    break;
+                    }
+                }
+                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix, weightTrajPoints, weightTrajForwards);
                 float comparison = tempVal;
                 int indexOfHighestValue = 0;
                 for (int j = 0; j < possibleCandidates.GetLength(1); j++)
@@ -236,13 +295,13 @@ public class MotionMatching : MonoBehaviour
                         if (comparison < values[currentMisc, j])
                         {
                             comparison = values[currentMisc, j];
-                            indexOfHighestValue = j;
+                            indexOfHighestValue = currentMisc;
                         }
                     }
                     else
                     {
                         possibleCandidates[currentMisc, j] = featureVectors[i];
-                        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, weightTrajPoints, weightTrajForwards);
+                        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix, weightTrajPoints, weightTrajForwards);
                     }
                 }
                 if (tempVal < comparison)
@@ -264,19 +323,20 @@ public class MotionMatching : MonoBehaviour
     {
         int bestId = -1;
         float currentDif = float.MaxValue;
+        //Debug.Log("Pose matching for " + candidates.Count + " candidates!");
         foreach (var candidate in candidates)
         {
-            float velDif = featureVectors[currentID].ComparePoses(candidate, weightLFootVel, weightRFootVel, weightRootVel);
-            float feetPosDif = featureVectors[currentID].GetPose().GetFeetDistance(candidate.GetPose());
+            float velDif = featureVectors[currentID].ComparePoses(candidate, transform.worldToLocalMatrix, weightLFootVel, weightRFootVel, weightRootVel);
+            float feetPosDif = featureVectors[currentID].GetPose().GetFeetDistance(candidate.GetPose(), transform.worldToLocalMatrix, weightFeetPos);
             float candidateDif = velDif + feetPosDif;
             if (candidateDif < currentDif)
             {
-				Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
+				//Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
                 bestId = candidate.GetID();
                 currentDif = candidateDif;
             }
         }
-		Debug.Log("Returning best id from pose matching: " + bestId);
+		//Debug.Log("Returning best id from pose matching: " + bestId);
 		return bestId;
     }
 
@@ -284,13 +344,15 @@ public class MotionMatching : MonoBehaviour
     {
         for (int i = 0; i < movementTags[stateNumber].Length; i++)
         {
-            if (candidateName.ToLower().Contains(movementTags[stateNumber][i]))   // TODO: Not sure if this is a good solution performance-wise. - YYY
-            {                                                                     // TODO: movementTags set to lower case during awake. Not sure how else to optimize?
-                //Debug.Log(candidateName.ToLower() + " Contains " + movementTags[stateNumber][i]);
+            if (candidateName.ToLower().Contains(movementTags[stateNumber][i]))
                 return true;
-            }
         }
         return false;
     }
-
+    private bool TagChecker(string candidateName, int stateNumber, int miscNumber)
+    {
+	    if (candidateName.ToLower().Contains(movementTags[stateNumber][miscNumber]))
+		    return true;
+        return false;
+    }
 }

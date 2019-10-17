@@ -25,7 +25,7 @@ public class CSVHandler
         "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
     };
     private List<string> allClipNames;
-    private List<float> allFrames;
+    private List<int> allFrames;
     private List<MMPose> allPoses;
     private List<TrajectoryPoint> allPoints;
 
@@ -94,7 +94,7 @@ public class CSVHandler
         bool ignoreHeaders = true;
 
         allClipNames = new List<string>();
-        allFrames = new List<float>();
+        allFrames = new List<int>();
         allPoses = new List<MMPose>();
         allPoints = new List<TrajectoryPoint>();
         List<FeatureVector> featuresFromCSV = new List<FeatureVector>();
@@ -113,7 +113,7 @@ public class CSVHandler
             if (!ignoreHeaders) // Iterates for each row in the CSV aside from the first (header) row
             {
                 allClipNames.Add(tempString[0]);
-                allFrames.Add(float.Parse(tempString[1], format));
+                allFrames.Add(int.Parse(tempString[1], format));
                 allPoses.Add(new MMPose(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
                     new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
                     new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format))));
