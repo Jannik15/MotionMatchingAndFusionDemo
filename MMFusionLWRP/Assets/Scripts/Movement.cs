@@ -88,8 +88,8 @@ public class Movement : MonoBehaviour
 				Quaternion lookRotation = posHolder + transform.forward != Vector3.zero
 					? Quaternion.LookRotation(posHolder + transform.forward) : Quaternion.identity; // Shorthand if : else
 
-				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, movementSpeed.value/*(mm.framesBetweenTrajectoryPoints / 100.0f)*/ * i) * Vector3.forward * Mathf.Clamp(1.0f, 0.0f, 1.0f);
-				Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(1.0f, 0.0f, 1.0f); // TODO: Set this to 1 for testing
+				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, movementSpeed.value/*(mm.framesBetweenTrajectoryPoints / 100.0f)*/ * i) * Vector3.forward * Mathf.Clamp(speed + 0.1f, 0.0f, 1.0f);
+				Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (mm.framesBetweenTrajectoryPoints / 100.0f) * i) * Vector3.forward * Mathf.Clamp(speed + 0.1f, 0.0f, 1.0f);
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}
 			else
@@ -108,7 +108,7 @@ public class Movement : MonoBehaviour
 	    Vector3 newPos = Vector3.Lerp(posHolder, posHolder + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
         Quaternion rotation = newPos - posHolder != Vector3.zero
             ? Quaternion.LookRotation(newPos - posHolder) : Quaternion.identity; // Shorthand if : else
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * /*speed*/ 2f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * speed + 0.1f);
         //transform.LookAt(newPos);
         posHolder = newPos;
 
@@ -178,19 +178,19 @@ public class Movement : MonoBehaviour
             lowerBound = rotationChecker;
         } 
         
-        Debug.Log(rotation.eulerAngles.y + " " + lowerBound + " " + upperBound);
-
         if (lowerBound > upperBound)
         {
             if (rotation.eulerAngles.y <= upperBound)
             {
-                lowerBound = upperBound - rotateToMoveThreshold;
+                lowerBound = upperBound - rotateToMoveThreshold * 2;
             }
             else if (rotation.eulerAngles.y >= lowerBound)
             {
-                upperBound = lowerBound + rotateToMoveThreshold;
+                upperBound = lowerBound + rotateToMoveThreshold * 2;
             }
         }
+
+        Debug.Log(rotation.eulerAngles.y + " " + lowerBound + " " + upperBound);
 
         if (rotation.eulerAngles.y <= upperBound &&
             rotation.eulerAngles.y >= lowerBound)
