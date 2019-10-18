@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
@@ -65,17 +66,23 @@ public class MotionMatching : MonoBehaviour
         preProcessing = new PreProcessing();
 
         allClips = animContainer.animationClips;
-        if (allClips == null)
-            Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
 
 #if UNITY_EDITOR
         if (_preProcess)
         {
-            animContainer.animationClips = preProcessing.FindClipsFromAnimatorController();
-            allClips = animContainer.animationClips;
+            allClips = preProcessing.FindClipsFromAnimatorController();
+            //animContainer.animationClips = allClips;
+            AnimContainer tempAnimContainer = new AnimContainer();
+            tempAnimContainer.animationClips = allClips;
+            EditorUtility.CopySerialized(tempAnimContainer, animContainer);
+            AssetDatabase.SaveAssets();
             preProcessing.Preprocess(allClips, jointNames);
         }
+
+        if (allClips == null)
+            Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
 #endif
+
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 
         for (int i = 0; i < allClips.Length; i++)
