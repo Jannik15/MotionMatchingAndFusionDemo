@@ -91,12 +91,12 @@ public class FeatureVector
     public float ComparePoses(FeatureVector candidateVector, Matrix4x4 newSpace, float weightLFootVel, float weightRFootVel, float weightRootVel)
     {
 	    float difference = 0;
-        //   difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetLeftFootVelocity()) * weightLFootVel, 
-        //    newSpace.MultiplyPoint3x4(candidateVector.GetLeftFootVelocity()) * weightLFootVel);
-        //difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRightFootVelocity()) * weightRFootVel, 
-        // newSpace.MultiplyPoint3x4(candidateVector.GetRightFootVelocity()) * weightRFootVel);
-        //difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRootVelocity()) * weightRootVel, 
-        // newSpace.MultiplyPoint3x4(candidateVector.GetRootVelocity()) * weightRootVel);
+        difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetLeftFootVelocity()) * weightLFootVel,
+         newSpace.MultiplyPoint3x4(candidateVector.GetLeftFootVelocity()) * weightLFootVel);
+        difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRightFootVelocity()) * weightRFootVel,
+         newSpace.MultiplyPoint3x4(candidateVector.GetRightFootVelocity()) * weightRFootVel);
+        difference += Vector3.Distance(newSpace.MultiplyPoint3x4(GetRootVelocity()) * weightRootVel,
+         newSpace.MultiplyPoint3x4(candidateVector.GetRootVelocity()) * weightRootVel);
 
         difference += Vector3.Distance(GetLeftFootVelocity() * weightLFootVel, candidateVector.GetLeftFootVelocity() * weightLFootVel);
         difference += Vector3.Distance(GetRightFootVelocity() * weightRFootVel, candidateVector.GetRightFootVelocity() * weightRFootVel);

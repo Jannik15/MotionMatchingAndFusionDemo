@@ -23,7 +23,7 @@ public class PreProcessing
         allFrames = new List<int>();
         allPoses = new List<MMPose>();
         allPoints = new List<TrajectoryPoint>();
-        
+
         Matrix4x4 charSpace = new Matrix4x4();
         Vector3 startPosForClip = Vector3.zero;
         Quaternion startRotForClip = Quaternion.identity;

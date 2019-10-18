@@ -364,7 +364,7 @@ PrefabInstance:
     - target: {fileID: 7104117827567920795, guid: 33ef752826940aa449b2d9aca8251475,
         type: 3}
       propertyPath: m_ApplyRootMotion
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7104117827567920795, guid: 33ef752826940aa449b2d9aca8251475,
         type: 3}
@@ -377,8 +377,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: humanBones.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: _preProcess
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: _playAnimationMode
@@ -395,6 +399,22 @@ PrefabInstance:
     - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: candidatesPerMisc
       value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: humanBones.Array.data[1]
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: humanBones.Array.data[2]
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: humanBones.Array.data[3]
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: humanBones.Array.data[4]
+      value: 22
       objectReference: {fileID: 0}
     - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: lerpTime.UseUnique
@@ -420,7 +440,7 @@ PrefabInstance:
     - target: {fileID: 7104117827558328621, guid: 33ef752826940aa449b2d9aca8251475,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0.0000000037252903
       objectReference: {fileID: 0}
     - target: {fileID: 7104117827558328621, guid: 33ef752826940aa449b2d9aca8251475,
         type: 3}
