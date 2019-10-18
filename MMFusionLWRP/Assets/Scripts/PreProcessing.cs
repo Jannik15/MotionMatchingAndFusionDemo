@@ -10,37 +10,44 @@ public class PreProcessing
 
     // --- Collections
     private List<string> allClipNames;
-    private List<float> allFrames;
+    private List<int> allFrames;
     private List<MMPose> allPoses;
-    private List<Trajectory> allPoints;
+    private List<TrajectoryPoint> allPoints;
     private List<Vector3> allRootVels, allLFootVels, allRFootVels;
-    private float debugFloat;
-
-    // --- Variables
-    private float sampleRate = 30;
 
     public void Preprocess(AnimationClip[] allClips, string[] jointNames)
     {
 		csvHandler = new CSVHandler();
 
         allClipNames = new List<string>();
-        allFrames = new List<float>();
+        allFrames = new List<int>();
         allPoses = new List<MMPose>();
-        allPoints = new List<Trajectory>();
+        allPoints = new List<TrajectoryPoint>();
         
-        sampleRate = allClips[0].frameRate; // Update the sampling rate to the clips framerate 
+        Matrix4x4 charSpace = new Matrix4x4();
+        Vector3 startPosForClip = Vector3.zero;
+        Quaternion startRotForClip = Quaternion.identity;
         for (int i = 0; i < allClips.Length; i++)
         {
+	        startPosForClip = GetJointPositionAtFrame(allClips[i], 0, jointNames[0]);
+	        startRotForClip = GetJointQuaternionAtFrame(allClips[i], 0, jointNames[0]);
+	        charSpace.SetTRS(startPosForClip, startRotForClip, Vector3.one);
+
             for (int j = 0; j < (int) (allClips[i].length * allClips[i].frameRate); j++)
             {
                 allClipNames.Add(allClips[i].name);
                 allFrames.Add(j);
-                allPoses.Add(new MMPose(GetJointPositionAtFrame(allClips[i], j, jointNames[0]), 
-	                GetJointPositionAtFrame(allClips[i], j, jointNames[1]), GetJointPositionAtFrame(allClips[i], j, jointNames[2])));
-                allPoints.Add(new Trajectory(new TrajectoryPoint(GetJointPositionAtFrame(allClips[i], j, jointNames[0]), 
-	                GetJointQuaternionAtFrame(allClips[i], j, jointNames[0]) * Vector3.forward), // Forward for this point
-	                GetJointQuaternionAtFrame(allClips[i], j, jointNames[0]))); // Quaternion for this point
+                allPoses.Add(new MMPose(
+	                charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[0])),
+	                charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[1])),
+		            charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[2]))));
+                allPoints.Add(new TrajectoryPoint(Vector3.zero,
+	                charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[0]) +
+	                                           GetJointQuaternionAtFrame(allClips[i], j, jointNames[0]) *
+	                                           Vector3.forward))); // Forward for this point
             }
+
+			
         }
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
         
@@ -81,7 +88,6 @@ public class PreProcessing
 		    {
 			    curve = AnimationUtility.GetEditorCurve(clip, binding);
 			    vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
-			    debugFloat = frame / clip.frameRate;
 			    arrayEnumerator++;
 		    }
 	    }

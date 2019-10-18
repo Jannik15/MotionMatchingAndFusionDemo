@@ -8,6 +8,19 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class MotionMatching : MonoBehaviour
 {
+	// TODO: Create LookUp system in preproccesing, that can be used instead of pose matching during runtime
+	// TODO: Convert system to Unity Jobs - can only take NativeArrays<float3>
+	// TODO: When preprocessing, also store the data that is being written to CSV as return to feature vector (do load and write step together when preprocessing)
+	// TODO: Do correct char space conversion
+	// TODO: Check that forwards for trajectories are being created correctly
+	// TODO: Create bool for using misc or not, since our current misc system doesn't really make sense
+	// TODO: Create some debugger that shows various information about the data, especially the trajectory for each frame
+	// BUG: Might need to remove the root position to get correct values for the curves(?)
+	// TODO: Collision detection with raycasting between the trajectory points
+	// TODO: At frame 0, set the velocity to be frame 0 pos - frame 1 pos (absolute value)
+	// TODO: Extrapolate empty trajectorypoints (points that go over the frame size for that clip)
+
+
     // --- References
     private Movement movement;
     private PreProcessing preProcessing;

@@ -104,7 +104,10 @@ public class Movement : MonoBehaviour
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}
 			else
-				points[i] = new TrajectoryPoint(transform.position, transform.position + transform.forward);
+				points[i] = new TrajectoryPoint(transform.position, transform.position +  transform.forward);
+
+			//Vector3 temp = transform.forward + transform.position;
+			//Debug.Log(transform.position + " | " + transform.forward + " | " + temp);
 		}
 		return new Trajectory(points);
     }

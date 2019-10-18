@@ -19,7 +19,6 @@ public class CSVHandler
         "RFootPos.x" /*[7]*/,       "RFootPos.y" /*[8]*/,     "RFootPos.z" /*[9]*/,
 
         // TrajectoryPoint data
-        "RootPos.x" /*[10]*/,        "RootPos.z" /*[11]*/,  // TODO: Remove this root pos since we have duplicates, but make sure to edit the correct references to the other
         "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
     };
     private List<string> allClipNames;
@@ -27,7 +26,7 @@ public class CSVHandler
     private List<MMPose> allPoses;
     private List<TrajectoryPoint> allPoints;
 
-    public void WriteCSV(List<MMPose> poseData, List<Trajectory> pointData, List<string> clipNames, List<float> frames)
+    public void WriteCSV(List<MMPose> poseData, List<TrajectoryPoint> pointData, List<string> clipNames, List<int> frames)
     {
 	    if (!AssetDatabase.IsValidFolder(path))
 	    {
@@ -47,8 +46,7 @@ public class CSVHandler
 
             for (int i = 0; i < poseData.Count; i++)
             {
-	            Matrix4x4 charSpace = new Matrix4x4();
-                charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[0].GetRotation(), Vector3.one);
+                //charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[0].GetRotation(), Vector3.one);
                 //charSpace.SetTRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
                 string[] tempLine =
@@ -57,20 +55,18 @@ public class CSVHandler
                     clipNames[i], frames[i].ToString(spec, ci),
 
                     // Pose data
-                    charSpace.MultiplyPoint3x4(poseData[i].GetRootPos()).x.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetRootPos()).z.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).x.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).y.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetLeftFootPos()).z.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).x.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).y.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(poseData[i].GetRightFootPos()).z.ToString(spec, ci),
+                    poseData[i].GetRootPos().x.ToString(spec, ci),
+                    poseData[i].GetRootPos().z.ToString(spec, ci),
+                    poseData[i].GetLeftFootPos().x.ToString(spec, ci),
+                    poseData[i].GetLeftFootPos().y.ToString(spec, ci),
+                    poseData[i].GetLeftFootPos().z.ToString(spec, ci),
+                    poseData[i].GetRightFootPos().x.ToString(spec, ci),
+                    poseData[i].GetRightFootPos().y.ToString(spec, ci),
+                    poseData[i].GetRightFootPos().z.ToString(spec, ci),
 
                     // TrajectoryPoint data
-                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetPoint()).x.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetPoint()).z.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetForward()).x.ToString(spec, ci),
-                    charSpace.MultiplyPoint3x4(pointData[i].GetRootPoint().GetForward()).z.ToString(spec, ci)
+                    pointData[i].GetForward().x.ToString(spec, ci),
+                    pointData[i].GetForward().z.ToString(spec, ci)
 					
                     //poseData[i].GetRootPos().x.ToString(spec, ci),
                     //poseData[i].GetRootPos().z.ToString(spec, ci),
@@ -103,11 +99,9 @@ public class CSVHandler
         while (true) // True until break is called within the loop
         {
             string dataString = reader.ReadLine(); // Reads a line (or row) in the CSV file
-
-            if (dataString == null) // No more data to be read, so break from the while loop
-            {
+            if (reader.EndOfStream) // No more data to be read, so break from the while loop
                 break;
-            }
+
             string[] tempString = dataString.Split(','); // line is split into each column
             NumberFormatInfo format = CultureInfo.InvariantCulture.NumberFormat;
 
@@ -118,8 +112,8 @@ public class CSVHandler
                 allPoses.Add(new MMPose(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
                     new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
                     new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format))));
-                allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[10], format), 0.0f, float.Parse(tempString[11], format)),
-                    new Vector3(float.Parse(tempString[12], format), 0.0f, float.Parse(tempString[13], format))));
+                allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
+                    new Vector3(float.Parse(tempString[10], format), 0.0f, float.Parse(tempString[11], format))));
             }
             else
                 ignoreHeaders = false;
@@ -136,7 +130,7 @@ public class CSVHandler
                     if (allFrames[i] < allFrames[i + j * trajStepSize]) // clip 3 at frame 45 out of 70 with a trajStepSize of 10 goes 45, 55, 65, X, X
                         trajPoints[j] = new TrajectoryPoint(allPoints[i + j * trajStepSize].GetPoint(), allPoints[i + j * trajStepSize].GetForward());
                     else
-                        trajPoints[j] = new TrajectoryPoint();
+                        trajPoints[j] = new TrajectoryPoint();  // TODO: Extrapolate instead of resetting
                 }
                 else
                     trajPoints[j] = new TrajectoryPoint();
