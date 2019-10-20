@@ -87,6 +87,7 @@ public class MotionMatching : MonoBehaviour
             Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
 #endif
 
+        allClips = animContainer.animationClips;
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 
         for (int i = 0; i < allClips.Length; i++)
