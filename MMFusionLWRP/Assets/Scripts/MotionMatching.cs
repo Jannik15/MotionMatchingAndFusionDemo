@@ -69,9 +69,6 @@ public class MotionMatching : MonoBehaviour
 	    animator = GetComponent<Animator>();
         preProcessing = new PreProcessing();
 
-
-        allClips = animContainer.animationClips;
-
 #if UNITY_EDITOR
         if (_preProcess)
         {
@@ -80,6 +77,7 @@ public class MotionMatching : MonoBehaviour
             tempAnimContainer.animationClips = allClips;
             EditorUtility.CopySerialized(tempAnimContainer, animContainer);
             AssetDatabase.SaveAssets();
+
             preProcessing.Preprocess(allClips, jointNames);
         }
 
@@ -87,6 +85,7 @@ public class MotionMatching : MonoBehaviour
             Debug.LogError("AnimationClips load error: selected scriptable object file empty or none referenced");
 #endif
 
+        allClips = animContainer.animationClips;
         featureVectors = preProcessing.LoadData(pointsPerTrajectory, framesBetweenTrajectoryPoints);
 
         for (int i = 0; i < allClips.Length; i++)

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 #if UNITY_EDITOR
-using JetBrains.Annotations;
 using UnityEditor;
-using UnityEditor.PackageManager;
+using System.Linq;
+using System;
 
 //[ExecuteInEditMode]
 public class Debugger : MonoBehaviour
@@ -17,9 +17,12 @@ public class Debugger : MonoBehaviour
     private List<Vector3> joints;
     private List<FeatureVector> featureVectors;
     private bool runOnce = true;
+    private string[] clipsNames;
+    private selectedJoints selectedJHolder, selectedCHolder;
 
     // public:
     public bool drawSelectedPos = false;
+    [Tooltip("Not implemented yet")]public bool drawForwardVEctors = false; // TODO: make this
     public enum selectedJoints
     {
         All,
@@ -28,16 +31,40 @@ public class Debugger : MonoBehaviour
         RightFoot
     }
     public selectedJoints selectJoints;
+
+    public enum selectedClips
+    {
+
+    }
+    public selectedClips selectClips;
+
     [Range(0.005f, 0.3f)] public float pointSize = 0.03f;
     public Color gizmosColor = Color.white;
+
+    [ExecuteInEditMode]
+    private void Awake()
+    {
+        if (GetComponent<MotionMatching>() != null)
+        {
+            mm = GetComponent<MotionMatching>();
+            if (mm.animContainer != null)
+            {
+                clipsNames = new string[mm.animContainer.animationClips.Length];
+                for (int i = 0; i < mm.animContainer.animationClips.Length; i++)
+                {
+                    clipsNames[i] = mm.animContainer.animationClips[i].name;
+                    selectClips = (selectedClips)Enum.Parse(typeof(selectedClips), clipsNames[i]);
+                }
+            }        
+        }
+    }
 
     void Start()
     {
         if (GetComponent<MotionMatching>() != null)
         {
             joints = new List<Vector3>();
-            mm = GetComponent<MotionMatching>();    // TODO: This doesn't work atm, as featureVectors are not populated before we run.
-            featureVectors = mm.GetFeatureVectors();    // TODO: Make them save to scriptable object
+            featureVectors = mm.GetFeatureVectors();
         }
         else
         {
@@ -53,6 +80,10 @@ public class Debugger : MonoBehaviour
             DisplayAllPos();
         else if (!drawSelectedPos && !runOnce)
             runOnce = true;
+        if (selectJoints != selectedJHolder)
+        {
+            runOnce = true;
+        }
     }
 
     private void DisplayAllPos()
@@ -62,7 +93,7 @@ public class Debugger : MonoBehaviour
         switch ((int)selectJoints)
         {
             case 0:
-                //joints = ;
+                //joints = ;    // TODO: Make this
                 break;
             case 1:
                 for (int i = 0; i < featureVectors.Count; i++)
@@ -85,7 +116,7 @@ public class Debugger : MonoBehaviour
             default:
                 break;
         }
-
+        selectedJHolder = selectJoints;
     }
 
     private void OnDrawGizmos()
@@ -110,9 +141,13 @@ public class Debugger : MonoBehaviour
 [CustomEditor(typeof(Debugger))]
 public class VersionDisplay_Editor : Editor
 {
-    public override void OnInspectorGUI()
+    public override void OnInspectorGUI()   // TODO: Finish the custom editor
     {
         DrawDefaultInspector();
+
+        var script = target as Debugger;
+
+
     }
 
     public void OnSceneGUI()
