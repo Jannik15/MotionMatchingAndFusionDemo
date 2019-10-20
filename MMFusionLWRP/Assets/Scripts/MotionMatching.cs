@@ -71,7 +71,6 @@ public class MotionMatching : MonoBehaviour
         if (_preProcess)
         {
             allClips = preProcessing.FindClipsFromAnimatorController();
-            //animContainer.animationClips = allClips;
             AnimContainer tempAnimContainer = new AnimContainer();
             tempAnimContainer.animationClips = allClips;
             EditorUtility.CopySerialized(tempAnimContainer, animContainer);
@@ -383,5 +382,10 @@ public class MotionMatching : MonoBehaviour
 	    if (candidateName.ToLower().Contains(movementTags[stateNumber][miscNumber]))
 		    return true;
         return false;
+    }
+
+    public List<FeatureVector> GetFeatureVectors()
+    {
+        return featureVectors;
     }
 }

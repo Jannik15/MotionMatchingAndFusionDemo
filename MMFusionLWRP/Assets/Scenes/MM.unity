@@ -478,7 +478,7 @@ MonoBehaviour:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 1
+  _preProcess: 0
   _playAnimationMode: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
@@ -519,6 +519,22 @@ MonoBehaviour:
     UseUnique: 0
     UniqueValue: 0
     variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
+--- !u!114 &1861943231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1861943228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d30b71524381e564caaa06d78e254f5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  drawSelectedPos: 0
+  selectJoints: 3
+  pointSize: 0.1
+  gizmosColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2016575769
 GameObject:
   m_ObjectHideFlags: 0
