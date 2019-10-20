@@ -14,4 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animationClips:
   - {fileID: 7400000, guid: c31c80009cccec043ac9ec4439552a4d, type: 3}
-  - {fileID: 7400000, guid: cd3dc152a8698d94890a6312ab347ba1, type: 3}
+  - {fileID: 1598898945879412647, guid: 5a6e0062d523cd64595aa3a410e4a335, type: 3}
+  - {fileID: 7400000, guid: 5a6e0062d523cd64595aa3a410e4a335, type: 3}
+  - {fileID: -9220950573565929400, guid: 5a6e0062d523cd64595aa3a410e4a335, type: 3}
+  - {fileID: 7400000, guid: ffabc93e0e4e1c04b84ed9c45e3f60c5, type: 3}
+  - {fileID: 3497775712403355520, guid: f02e14c1a48fd39408f9993d80698ef4, type: 3}
+  - {fileID: 889839350037195614, guid: f02e14c1a48fd39408f9993d80698ef4, type: 3}
+  - {fileID: 7400000, guid: f02e14c1a48fd39408f9993d80698ef4, type: 3}
+  - {fileID: 4344548913397313303, guid: f02e14c1a48fd39408f9993d80698ef4, type: 3}
+  - {fileID: 1113811594823962221, guid: f02e14c1a48fd39408f9993d80698ef4, type: 3}
+  - {fileID: 7400000, guid: bb5715c9604094b48949fb4aaa87b4df, type: 3}
+  - {fileID: 7400000, guid: 42f9e527b95e7d546afd43d8b1709efa, type: 3}

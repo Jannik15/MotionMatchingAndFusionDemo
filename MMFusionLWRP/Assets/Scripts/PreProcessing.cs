@@ -14,8 +14,11 @@ public class PreProcessing
     private List<MMPose> allPoses;
     private List<TrajectoryPoint> allPoints;
     private List<Vector3> allRootVels, allLFootVels, allRFootVels;
+    
+    // --- Variables
+    private const float velFactor = 10.0f;
 
-    public void Preprocess(AnimationClip[] allClips, string[] jointNames)
+    public void Preprocess(AnimationClip[] allClips, HumanBodyBones[] joints, GameObject avatar, Animator animator)
     {
 		csvHandler = new CSVHandler();
 
@@ -25,26 +28,26 @@ public class PreProcessing
         allPoints = new List<TrajectoryPoint>();
 
         Matrix4x4 charSpace = new Matrix4x4();
-        Vector3 startPosForClip = Vector3.zero;
-        Quaternion startRotForClip = Quaternion.identity;
         for (int i = 0; i < allClips.Length; i++)
         {
-	        startPosForClip = GetJointPositionAtFrame(allClips[i], 0, jointNames[0]);
-	        startRotForClip = GetJointQuaternionAtFrame(allClips[i], 0, jointNames[0]);
-	        charSpace.SetTRS(startPosForClip, startRotForClip, Vector3.one);
+            allClips[i].SampleAnimation(avatar, 0); // First frame of currently sampled animation
+            Vector3 startPosForClip = animator.GetBoneTransform(joints[0]).position;
+            Quaternion startRotForClip = animator.GetBoneTransform(joints[0]).rotation;
+            charSpace.SetTRS(startPosForClip, startRotForClip, Vector3.one);
 
-            for (int j = 0; j < (int) (allClips[i].length * allClips[i].frameRate); j++)
+            for (int j = 0; j < (int)(allClips[i].length * allClips[i].frameRate); j++)
             {
+                allClips[i].SampleAnimation(avatar, j / allClips[i].frameRate);
                 allClipNames.Add(allClips[i].name);
                 allFrames.Add(j);
-                allPoses.Add(new MMPose(
-	                charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[0])),
-	                charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[1])),
-		            charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[2]))));
-                allPoints.Add(new TrajectoryPoint(Vector3.zero,
-	                charSpace.MultiplyPoint3x4(GetJointPositionAtFrame(allClips[i], j, jointNames[0]) +
-	                                           GetJointQuaternionAtFrame(allClips[i], j, jointNames[0]) *
-	                                           Vector3.forward))); // Forward for this point
+                Vector3 rootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position);
+                Vector3 lFootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
+                Vector3 rFootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[2]).position);
+                Vector3 neckPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[3]).position);
+                allPoses.Add(new MMPose(rootPos, lFootPos, rFootPos, neckPos,
+                    CalculateVelocity(rootPos, ), Vector3.zero, Vector3.zero, Vector3.zero));
+                allPoints.Add(new TrajectoryPoint(rootPos,
+                    charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position + animator.GetBoneTransform(joints[0]).forward)));
             }
 
 			
@@ -56,42 +59,7 @@ public class PreProcessing
     {
 		if (csvHandler == null)
 			csvHandler = new CSVHandler();
-		List<FeatureVector> featureVector = csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints);
-        return featureVector;
-    }
-
-    public Vector3 GetJointPositionAtFrame(AnimationClip clip, int frame, string jointName)
-    {
-        // Bindings are inherited from a clip, and the AnimationCurve is inherited from the clip's binding
-        float[] vectorValues = new float[3];
-        int arrayEnumerator = 0;
-        foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(clip))
-        {
-            if (binding.propertyName.Contains(jointName + "T"))
-            {
-                var curve = AnimationUtility.GetEditorCurve(clip, binding);
-                vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
-                arrayEnumerator++;
-            }
-        }
-        return new Vector3(vectorValues[0], vectorValues[1], vectorValues[2]);
-    }
-    public Quaternion GetJointQuaternionAtFrame(AnimationClip clip, int frame, string jointName)
-    {
-	    // Bindings are inherited from a clip, and the AnimationCurve is inherited from the clip's binding
-	    AnimationCurve curve = new AnimationCurve();
-	    float[] vectorValues = new float[4];
-	    int arrayEnumerator = 0;
-	    foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(clip))
-	    {
-		    if (binding.propertyName.Contains(jointName + "Q"))
-		    {
-			    curve = AnimationUtility.GetEditorCurve(clip, binding);
-			    vectorValues[arrayEnumerator] = curve.Evaluate(frame / clip.frameRate);
-			    arrayEnumerator++;
-		    }
-	    }
-	    return new Quaternion(vectorValues[0], vectorValues[1], vectorValues[2], vectorValues[3]);
+        return csvHandler.ReadCSV(pointsPerTrajectory, framesBetweenTrajectoryPoints); ;
     }
 
     public AnimationClip[] FindClipsFromAnimatorController()
@@ -109,4 +77,13 @@ public class PreProcessing
 
         return tempAnimClipArr;
     }
+    public Vector3 CalculateVelocity(Vector3 currentPos, Vector3 previousPose, float velocityFactor)
+    {
+        return (currentPos - previousPose) * velocityFactor;
+    }
+    public Vector3 CalculateVelocity(Vector3 currentPos, Vector3 previousPose, Matrix4x4 newSpace, float velocityFactor)
+    {
+        return (newSpace.MultiplyPoint3x4(currentPos) - newSpace.MultiplyPoint3x4(previousPose)) * velocityFactor;
+    }
+
 }

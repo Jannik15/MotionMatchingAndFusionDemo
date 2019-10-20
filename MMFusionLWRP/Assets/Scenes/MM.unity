@@ -473,12 +473,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b76abe709e9dcf42a14c8915b96f35c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  joints: 00000000050000000600000009000000
   animContainer: {fileID: 11400000, guid: d984637c3976fac478d264e510426c2d, type: 2}
   jointNames:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 1
+  _preProcess: 0
   _playAnimationMode: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10

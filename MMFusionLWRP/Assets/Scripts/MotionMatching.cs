@@ -33,7 +33,7 @@ public class MotionMatching : MonoBehaviour
     // --- Collections
     private List<FeatureVector> featureVectors;
     private AnimationClip[] allClips;
-    public HumanBodyBones[] humanBones;
+    public HumanBodyBones[] joints;
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
     public string[] jointNames;
     public string[][] movementTags =
@@ -69,19 +69,18 @@ public class MotionMatching : MonoBehaviour
 	    animator = GetComponent<Animator>();
         preProcessing = new PreProcessing();
 
-
         allClips = animContainer.animationClips;
-
 #if UNITY_EDITOR
         if (_preProcess)
         {
+            // Get animations from animation controller, and store it in a scriptable object
             allClips = preProcessing.FindClipsFromAnimatorController();
-            //animContainer.animationClips = allClips;
             AnimContainer tempAnimContainer = new AnimContainer();
             tempAnimContainer.animationClips = allClips;
             EditorUtility.CopySerialized(tempAnimContainer, animContainer);
             AssetDatabase.SaveAssets();
-            preProcessing.Preprocess(allClips, jointNames);
+
+            preProcessing.Preprocess(allClips, joints, gameObject, animator);
         }
 
         if (allClips == null)
@@ -97,20 +96,13 @@ public class MotionMatching : MonoBehaviour
 	        {
 				if (featureVectors[j].GetClipName() == allClips[i].name)
                     featureVectors[j].SetFrameCount(frames);
-	        }
-        }
-
-        for (int i = 0; i < allClips.Length; i++)
-        {
-            for (int j = 0; j < (int)(allClips[i].length * allClips[i].frameRate); j++)
-            {
-	            allClips[i].SampleAnimation(gameObject, j / allClips[i].frameRate);
-                for (int k = 0; k < humanBones.Length; k++)
-		        {
-			        Debug.Log(allClips[i].name +" at frame " + (j / allClips[i].frameRate) + " for bone " + humanBones[k] + " = position " + animator.GetBoneTransform(humanBones[k]).position);
-                }
             }
         }
+
+        //for (int i = 0; i < featureVectors.Count; i++)
+        //{
+        //    Debug.Log("For clip " + featureVectors[i].GetClipName() + " at frame " + featureVectors[i].GetFrame() + " the frame count is " + featureVectors[i].GetFrameCountForID());
+        //}
 
         for (int i = 0; i < movementTags.Length; i++)
         {
@@ -124,8 +116,13 @@ public class MotionMatching : MonoBehaviour
         {
 			if (i != 0)
 				featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
-			else // Velocity is 0 for frame 0 of all animations
-                featureVectors[i].CalculateVelocity(featureVectors[i].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+            else
+            {
+                featureVectors[i].CalculateVelocity(featureVectors[i + 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+                featureVectors[i].SetRootVelocity(AbsVector3(featureVectors[i].GetRootVelocity()));
+                featureVectors[i].SetLeftFootVelocity(AbsVector3(featureVectors[i].GetLeftFootVelocity()));
+                featureVectors[i].SetRightFootVelocity(AbsVector3(featureVectors[i].GetRightFootVelocity()));
+            }
         }
         enumeratorBools = AddEnumeratorBoolsToList();
     }
@@ -190,8 +187,7 @@ public class MotionMatching : MonoBehaviour
 		    Matrix4x4 newSpace = new Matrix4x4();
 		    newSpace.SetTRS(transform.position, Quaternion.identity, transform.lossyScale);
 
-
-		    Gizmos.color = Color.red; // Movement Trajectory
+            Gizmos.color = Color.red; // Movement Trajectory
             for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
 		    {
 				// Position
@@ -208,14 +204,14 @@ public class MotionMatching : MonoBehaviour
             for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
 		    {
 				// Position
-				Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 0.2f);
-				if (i != 0)
-					Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint()), 
-						invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()));
+				Gizmos.DrawWireSphere(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+				//if (i != 0)
+				//	Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint(), 
+				//		featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
 				// Forward
-				Gizmos.DrawLine(charSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()),
-					newSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward()));
+				Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(),
+					featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward());
 		    }
 
    //         Gizmos.color = Color.magenta;
@@ -319,9 +315,8 @@ public class MotionMatching : MonoBehaviour
 		{
             if (!TagChecker(featureVectors[i].GetClipName(), currentState))
                 continue;
-            //Debug.Log("FV passed: ID " + featureVectors[i].GetID() + " at frame " + featureVectors[i].GetFrame() + " of " + featureVectors[i].GetFrameCountForID() + " frames.");
             if ((featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
-                 featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID() && featureVectors[i].GetFrame() != 0)
+                 featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID())
             {
                 for (int j = 0; j < movementTags[currentState].Length; j++) // This for loop can be used if looking to consider multiple miscs for the current state during trajectory matching
                 {
@@ -331,7 +326,7 @@ public class MotionMatching : MonoBehaviour
 	                    break;
                     }
                 }
-                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix, weightTrajPoints, weightTrajForwards);
+                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
                 float comparison = tempVal;
                 int indexOfHighestValue = 0;
                 for (int j = 0; j < possibleCandidates.GetLength(1); j++)
@@ -400,5 +395,10 @@ public class MotionMatching : MonoBehaviour
 	    if (candidateName.ToLower().Contains(movementTags[stateNumber][miscNumber]))
 		    return true;
         return false;
+    }
+
+    private Vector3 AbsVector3(Vector3 vector)
+    {
+        return new Vector3(Mathf.Abs(vector.x), Math.Abs(vector.y), Mathf.Abs(vector.z));
     }
 }

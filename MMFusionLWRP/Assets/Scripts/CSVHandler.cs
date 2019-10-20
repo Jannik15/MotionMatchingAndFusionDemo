@@ -11,15 +11,21 @@ public class CSVHandler
     private static string[] csvLabels =
     {
     // General info
-    "ClipName" /*[0]*/,         "Frame" /*[1]*/,
+    "ClipName" /*[0]*/,     "Frame" /*[1]*/,
 
     // Pose data
-    "RootPos.x" /*[2]*/,        "RootPos.z" /*[3]*/,
-    "LFootPos.x" /*[4]*/,       "LFootPos.y" /*[5]*/,   "LFootPos.z" /*[6]*/,
-    "RFootPos.x" /*[7]*/,       "RFootPos.y" /*[8]*/,     "RFootPos.z" /*[9]*/,
+    "RootPos.x" /*[2]*/,    "RootPos.z" /*[3]*/,
+    "LFootPos.x" /*[4]*/,   "LFootPos.y" /*[5]*/,   "LFootPos.z" /*[6]*/,
+    "RFootPos.x" /*[7]*/,   "RFootPos.y" /*[8]*/,   "RFootPos.z" /*[9]*/,
+    "NeckPos.x" /*[10]*/,   "NeckPos.y" /*[11]*/,   "NeckPos.z" /*[12]*/,
+
+    "RootVel.x" /*[13]*/,   "RootVel.z" /*[14]*/,
+    "LFootVel.x" /*[15]*/,  "LFootVel.y" /*[16]*/,  "LFootVel.z" /*[17]*/,
+    "RFootVel.x" /*[18]*/,  "RFootVel.y" /*[19]*/,  "RFootVel.z" /*[20]*/,
+    "NeckVel.x" /*[21]*/,   "NeckVel.y" /*[22]*/,   "NeckVel.z" /*[23]*/,
 
     // TrajectoryPoint data
-    "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
+    "Forward.x" /*[24]*/,   "Forward.z"  /*[25]*/
 };
     private List<string> allClipNames;
     private List<int> allFrames;
@@ -46,9 +52,6 @@ public class CSVHandler
 
             for (int i = 0; i < poseData.Count; i++)
             {
-                //charSpace.SetTRS(pointData[0].GetRootPoint().GetPoint(), pointData[0].GetRotation(), Vector3.one);
-                //charSpace.SetTRS(Vector3.zero, Quaternion.identity, Vector3.one);
-
                 string[] tempLine =
                 {
                 // General info
@@ -63,21 +66,25 @@ public class CSVHandler
                 poseData[i].GetRightFootPos().x.ToString(spec, ci),
                 poseData[i].GetRightFootPos().y.ToString(spec, ci),
                 poseData[i].GetRightFootPos().z.ToString(spec, ci),
+                poseData[i].GetNeckPos().x.ToString(spec, ci),
+                poseData[i].GetNeckPos().y.ToString(spec, ci),
+                poseData[i].GetNeckPos().z.ToString(spec, ci),
+
+                poseData[i].GetRootVelocity().x.ToString(spec, ci),
+                poseData[i].GetRootVelocity().z.ToString(spec, ci),
+                poseData[i].GetLeftFootVelocity().x.ToString(spec, ci),
+                poseData[i].GetLeftFootVelocity().y.ToString(spec, ci),
+                poseData[i].GetLeftFootVelocity().z.ToString(spec, ci),
+                poseData[i].GetRightFootVelocity().x.ToString(spec, ci),
+                poseData[i].GetRightFootVelocity().y.ToString(spec, ci),
+                poseData[i].GetRightFootVelocity().z.ToString(spec, ci),
+                poseData[i].GetNeckVelocity().x.ToString(spec, ci),
+                poseData[i].GetNeckVelocity().y.ToString(spec, ci),
+                poseData[i].GetNeckVelocity().z.ToString(spec, ci),
 
                 // TrajectoryPoint data
                 pointData[i].GetForward().x.ToString(spec, ci),
                 pointData[i].GetForward().z.ToString(spec, ci)
-				
-                //poseData[i].GetRootPos().x.ToString(spec, ci),
-                //poseData[i].GetRootPos().z.ToString(spec, ci),
-                //poseData[i].GetRootVelocity().x.ToString(spec, ci),
-                //poseData[i].GetRootVelocity().z.ToString(spec, ci),
-                //poseData[i].GetLefFootVelocity().x.ToString(spec, ci), 
-                //poseData[i].GetLefFootVelocity().y.ToString(spec, ci), 
-                //poseData[i].GetLefFootVelocity().z.ToString(spec, ci),
-                //poseData[i].GetRightFootVelocity().x.ToString(spec, ci), 
-                //poseData[i].GetRightFootVelocity().y.ToString(spec, ci), 
-                //poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
             };
 
                 file.WriteLine(string.Join(",", tempLine));
@@ -99,7 +106,7 @@ public class CSVHandler
         while (true) // True until break is called within the loop
         {
             string dataString = reader.ReadLine(); // Reads a line (or row) in the CSV file
-            if (reader.EndOfStream) // No more data to be read, so break from the while loop
+            if (dataString == null) // No more data to be read, so break from the while loop
                 break;
 
             string[] tempString = dataString.Split(','); // line is split into each column
