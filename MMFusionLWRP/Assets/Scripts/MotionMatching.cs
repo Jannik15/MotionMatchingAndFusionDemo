@@ -9,17 +9,20 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class MotionMatching : MonoBehaviour
 {
-	// TODO: Create LookUp system in preproccesing, that can be used instead of pose matching during runtime
-	// TODO: Convert system to Unity Jobs - can only take NativeArrays<float3>
-	// TODO: When preprocessing, also store the data that is being written to CSV as return to feature vector (do load and write step together when preprocessing)
-	// TODO: Do correct char space conversion
-	// TODO: Check that forwards for trajectories are being created correctly
-	// TODO: Create bool for using misc or not, since our current misc system doesn't really make sense
-	// TODO: Create some debugger that shows various information about the data, especially the trajectory for each frame
-	// BUG: Might need to remove the root position to get correct values for the curves(?)
-	// TODO: Collision detection with raycasting between the trajectory points
-	// TODO: At frame 0, set the velocity to be frame 0 pos - frame 1 pos (absolute value)
-	// TODO: Extrapolate empty trajectorypoints (points that go over the frame size for that clip)
+    // TODO: Create LookUp system in preproccesing, that can be used instead of pose matching during runtime
+    // TODO: Convert system to Unity Jobs - can only take NativeArrays<float3>
+    // TODO: When preprocessing, also store the data that is being written to CSV as return to feature vector (do load and write step together when preprocessing)
+    // TODO: Do correct char space conversion
+    // TODO: Check that forwards for trajectories are being created correctly
+    // TODO: Create bool for using misc or not, since our current misc system doesn't really make sense
+    // TODO: Create some debugger that shows various information about the data, especially the trajectory for each frame
+    // BUG: Might need to remove the root position to get correct values for the curves(?)
+    // TODO: Collision detection with raycasting between the trajectory points
+    // TODO: At frame 0, set the velocity to be frame 0 pos - frame 1 pos (absolute value)
+    // TODO: Extrapolate empty trajectorypoints (points that go over the frame size for that clip)
+
+    // TODO: https://docs.unity3d.com/ScriptReference/AnimationClip.SampleAnimation.html
+    // TODO: https://docs.unity3d.com/ScriptReference/HumanBodyBones.html
 
 
     // --- References
@@ -30,6 +33,7 @@ public class MotionMatching : MonoBehaviour
     // --- Collections
     private List<FeatureVector> featureVectors;
     private AnimationClip[] allClips;
+    public HumanBodyBones[] humanBones;
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
     public string[] jointNames;
     public string[][] movementTags =
@@ -65,6 +69,7 @@ public class MotionMatching : MonoBehaviour
 	    animator = GetComponent<Animator>();
         preProcessing = new PreProcessing();
 
+
         allClips = animContainer.animationClips;
 
 #if UNITY_EDITOR
@@ -92,6 +97,18 @@ public class MotionMatching : MonoBehaviour
 				if (featureVectors[j].GetClipName() == allClips[i].name)
                     featureVectors[j].SetFrameCount(frames);
 	        }
+        }
+
+        for (int i = 0; i < allClips.Length; i++)
+        {
+            for (int j = 0; j < (int)(allClips[i].length * allClips[i].frameRate); j++)
+            {
+	            allClips[i].SampleAnimation(gameObject, j / allClips[i].frameRate);
+                for (int k = 0; k < humanBones.Length; k++)
+		        {
+			        Debug.Log(allClips[i].name +" at frame " + (j / allClips[i].frameRate) + " for bone " + humanBones[k] + " = position " + animator.GetBoneTransform(humanBones[k]).position);
+                }
+            }
         }
 
         for (int i = 0; i < movementTags.Length; i++)
@@ -124,7 +141,7 @@ public class MotionMatching : MonoBehaviour
 
     private void FixedUpdate()
     {
-	    if (!_playAnimationMode)
+        if (!_playAnimationMode)
 	    {
 		    if (movement.GetSpeed() <= idleThreshold)
 		    {

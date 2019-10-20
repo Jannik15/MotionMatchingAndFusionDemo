@@ -10,17 +10,17 @@ public class CSVHandler
     private string fileName = "AnimData.csv";
     private static string[] csvLabels =
     {
-        // General info
-        "ClipName" /*[0]*/,         "Frame" /*[1]*/,
+    // General info
+    "ClipName" /*[0]*/,         "Frame" /*[1]*/,
 
-        // Pose data
-        "RootPos.x" /*[2]*/,        "RootPos.z" /*[3]*/,
-        "LFootPos.x" /*[4]*/,       "LFootPos.y" /*[5]*/,   "LFootPos.z" /*[6]*/,
-        "RFootPos.x" /*[7]*/,       "RFootPos.y" /*[8]*/,     "RFootPos.z" /*[9]*/,
+    // Pose data
+    "RootPos.x" /*[2]*/,        "RootPos.z" /*[3]*/,
+    "LFootPos.x" /*[4]*/,       "LFootPos.y" /*[5]*/,   "LFootPos.z" /*[6]*/,
+    "RFootPos.x" /*[7]*/,       "RFootPos.y" /*[8]*/,     "RFootPos.z" /*[9]*/,
 
-        // TrajectoryPoint data
-        "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
-    };
+    // TrajectoryPoint data
+    "Forward.x" /*[12]*/,        "Forward.z"  /*[13]*/
+};
     private List<string> allClipNames;
     private List<int> allFrames;
     private List<MMPose> allPoses;
@@ -28,14 +28,14 @@ public class CSVHandler
 
     public void WriteCSV(List<MMPose> poseData, List<TrajectoryPoint> pointData, List<string> clipNames, List<int> frames)
     {
-	    if (!AssetDatabase.IsValidFolder(path))
-	    {
-		    if (!AssetDatabase.IsValidFolder("Assets/Resources"))
-		    {
-			    AssetDatabase.CreateFolder("Assets", "Resources");
-		    }
-		    AssetDatabase.CreateFolder("Assets/Resources", "MotionMatching");
-	    }
+        if (!AssetDatabase.IsValidFolder(path))
+        {
+            if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Resources");
+            }
+            AssetDatabase.CreateFolder("Assets/Resources", "MotionMatching");
+        }
         using (var file = File.CreateText(path + "/" + fileName))
         {
             file.WriteLine(string.Join(",", csvLabels));
@@ -51,34 +51,34 @@ public class CSVHandler
 
                 string[] tempLine =
                 {
-                    // General info
-                    clipNames[i], frames[i].ToString(spec, ci),
+                // General info
+                clipNames[i], frames[i].ToString(spec, ci),
 
-                    // Pose data
-                    poseData[i].GetRootPos().x.ToString(spec, ci),
-                    poseData[i].GetRootPos().z.ToString(spec, ci),
-                    poseData[i].GetLeftFootPos().x.ToString(spec, ci),
-                    poseData[i].GetLeftFootPos().y.ToString(spec, ci),
-                    poseData[i].GetLeftFootPos().z.ToString(spec, ci),
-                    poseData[i].GetRightFootPos().x.ToString(spec, ci),
-                    poseData[i].GetRightFootPos().y.ToString(spec, ci),
-                    poseData[i].GetRightFootPos().z.ToString(spec, ci),
+                // Pose data
+                poseData[i].GetRootPos().x.ToString(spec, ci),
+                poseData[i].GetRootPos().z.ToString(spec, ci),
+                poseData[i].GetLeftFootPos().x.ToString(spec, ci),
+                poseData[i].GetLeftFootPos().y.ToString(spec, ci),
+                poseData[i].GetLeftFootPos().z.ToString(spec, ci),
+                poseData[i].GetRightFootPos().x.ToString(spec, ci),
+                poseData[i].GetRightFootPos().y.ToString(spec, ci),
+                poseData[i].GetRightFootPos().z.ToString(spec, ci),
 
-                    // TrajectoryPoint data
-                    pointData[i].GetForward().x.ToString(spec, ci),
-                    pointData[i].GetForward().z.ToString(spec, ci)
-					
-                    //poseData[i].GetRootPos().x.ToString(spec, ci),
-                    //poseData[i].GetRootPos().z.ToString(spec, ci),
-                    //poseData[i].GetRootVelocity().x.ToString(spec, ci),
-                    //poseData[i].GetRootVelocity().z.ToString(spec, ci),
-                    //poseData[i].GetLefFootVelocity().x.ToString(spec, ci), 
-                    //poseData[i].GetLefFootVelocity().y.ToString(spec, ci), 
-                    //poseData[i].GetLefFootVelocity().z.ToString(spec, ci),
-                    //poseData[i].GetRightFootVelocity().x.ToString(spec, ci), 
-                    //poseData[i].GetRightFootVelocity().y.ToString(spec, ci), 
-                    //poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
-                };
+                // TrajectoryPoint data
+                pointData[i].GetForward().x.ToString(spec, ci),
+                pointData[i].GetForward().z.ToString(spec, ci)
+				
+                //poseData[i].GetRootPos().x.ToString(spec, ci),
+                //poseData[i].GetRootPos().z.ToString(spec, ci),
+                //poseData[i].GetRootVelocity().x.ToString(spec, ci),
+                //poseData[i].GetRootVelocity().z.ToString(spec, ci),
+                //poseData[i].GetLefFootVelocity().x.ToString(spec, ci), 
+                //poseData[i].GetLefFootVelocity().y.ToString(spec, ci), 
+                //poseData[i].GetLefFootVelocity().z.ToString(spec, ci),
+                //poseData[i].GetRightFootVelocity().x.ToString(spec, ci), 
+                //poseData[i].GetRightFootVelocity().y.ToString(spec, ci), 
+                //poseData[i].GetRightFootVelocity().z.ToString(spec, ci), 
+            };
 
                 file.WriteLine(string.Join(",", tempLine));
             }
