@@ -478,7 +478,7 @@ MonoBehaviour:
   - Root
   - LeftFoot
   - RightFoot
-  _preProcess: 0
+  _preProcess: 1
   _playAnimationMode: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
@@ -533,7 +533,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   drawSelectedPos: 0
   selectJoints: 3
-  pointSize: 0.1
+  pointSize: 0.05
   gizmosColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2016575769
 GameObject:
