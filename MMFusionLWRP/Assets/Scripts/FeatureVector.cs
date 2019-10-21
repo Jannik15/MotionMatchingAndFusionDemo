@@ -2,20 +2,19 @@
 
 public class FeatureVector
 {
-	private int id;
-	private string clipName;
-	private int frame;
+	private readonly int id, frame;
 	private int allFrames;
-    private MMPose pose;
-    private Trajectory trajectory;
+    private readonly string clipName;
+    private readonly MMPose pose;
+    private readonly Trajectory trajectory;
 
-    public FeatureVector(MMPose _pose, Trajectory _trajectory, int _id, string _clipName, int _frame)
+    public FeatureVector(MMPose pose, Trajectory trajectory, int id, string clipName, int frame)
     {
-        pose = _pose;
-        trajectory = _trajectory;
-        id = _id;
-        clipName = _clipName;
-        frame = _frame;
+        this.pose = pose;
+        this.trajectory = trajectory;
+        this.id = id;
+        this.clipName = clipName;
+        this.frame = frame;
     }
 
     public void SetFrameCount(int frameCountForID)
@@ -47,7 +46,7 @@ public class FeatureVector
     {
 	    return allFrames;
     }
-    public Trajectory CreateTrajectory(TrajectoryPoint pointAtNextStep, int i)
+    public Trajectory CreateTrajectory(TrajectoryPoint pointAtNextStep, int i) // TODO: Currently redundant, remove or refactor
     {
 	    if (i == 0) // We check for index, since we do not want to override the initial trajectory point of the id.
 	    {

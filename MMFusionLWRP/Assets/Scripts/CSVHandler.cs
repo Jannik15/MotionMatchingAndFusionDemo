@@ -116,11 +116,21 @@ public class CSVHandler
             {
                 allClipNames.Add(tempString[0]);
                 allFrames.Add(int.Parse(tempString[1], format));
-                //allPoses.Add(new MMPose(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
-                //    new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
-                //    new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format))));
+                allPoses.Add(new MMPose(
+	                // Positions
+	                new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
+                    new Vector3(float.Parse(tempString[4], format), float.Parse(tempString[5], format), float.Parse(tempString[6], format)),
+                    new Vector3(float.Parse(tempString[7], format), float.Parse(tempString[8], format), float.Parse(tempString[9], format)),
+                    new Vector3(float.Parse(tempString[10], format), float.Parse(tempString[11], format), float.Parse(tempString[12], format)),
+
+					// Velocities
+                    new Vector3(float.Parse(tempString[13], format), 0.0f, float.Parse(tempString[14], format)),
+                    new Vector3(float.Parse(tempString[15], format), float.Parse(tempString[16], format), float.Parse(tempString[17], format)),
+                    new Vector3(float.Parse(tempString[18], format), float.Parse(tempString[19], format), float.Parse(tempString[20], format)),
+                    new Vector3(float.Parse(tempString[21], format), float.Parse(tempString[22], format), float.Parse(tempString[23], format))));
+
                 allPoints.Add(new TrajectoryPoint(new Vector3(float.Parse(tempString[2], format), 0.0f, float.Parse(tempString[3], format)),
-                    new Vector3(float.Parse(tempString[10], format), 0.0f, float.Parse(tempString[11], format))));
+                    new Vector3(float.Parse(tempString[24], format), 0.0f, float.Parse(tempString[25], format))));
             }
             else
                 ignoreHeaders = false;

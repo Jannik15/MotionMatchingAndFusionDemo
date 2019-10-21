@@ -27,27 +27,55 @@ public class PreProcessing
         allPoses = new List<MMPose>();
         allPoints = new List<TrajectoryPoint>();
 
-        Matrix4x4 charSpace = new Matrix4x4();
+        Matrix4x4 startSpace = new Matrix4x4();
+		Matrix4x4 charSpace = new Matrix4x4();
         for (int i = 0; i < allClips.Length; i++)
         {
             allClips[i].SampleAnimation(avatar, 0); // First frame of currently sampled animation
-            Vector3 startPosForClip = animator.GetBoneTransform(joints[0]).position;
+            Vector3 startPosForClip = new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z);
             Quaternion startRotForClip = animator.GetBoneTransform(joints[0]).rotation;
-            charSpace.SetTRS(startPosForClip, startRotForClip, Vector3.one);
+            startSpace.SetTRS(startPosForClip, startRotForClip, Vector3.one);
+
+            Vector3 preRootPos = Vector3.zero, preLFootPos = Vector3.zero, preRFootPos = Vector3.zero, preNeckPos = Vector3.zero;
 
             for (int j = 0; j < (int)(allClips[i].length * allClips[i].frameRate); j++)
             {
-                allClips[i].SampleAnimation(avatar, j / allClips[i].frameRate);
-                allClipNames.Add(allClips[i].name);
-                allFrames.Add(j);
-                Vector3 rootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position);
-                Vector3 lFootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
-                Vector3 rFootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[2]).position);
-                Vector3 neckPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[3]).position);
-                //allPoses.Add(new MMPose(rootPos, lFootPos, rFootPos, neckPos,
-                //    CalculateVelocity(rootPos, ), Vector3.zero, Vector3.zero, Vector3.zero));
+	            allClips[i].SampleAnimation(avatar, j / allClips[i].frameRate);
+	            allClipNames.Add(allClips[i].name);
+	            allFrames.Add(j);
+                Vector3 rootPos = startSpace.inverse.MultiplyPoint3x4(new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z));
+                charSpace.SetTRS(new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z),
+	                animator.GetBoneTransform(joints[0]).rotation, Vector3.one);
+                Vector3 lFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
+	            Vector3 rFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[2]).position);
+	            Vector3 neckPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[3]).position);
+                if (j != 0)
+                {
+                    allPoses.Add(new MMPose(rootPos, lFootPos, rFootPos, neckPos,
+	                    CalculateVelocity(rootPos, preRootPos, velFactor), CalculateVelocity(lFootPos, preLFootPos, velFactor),
+	                    CalculateVelocity(rFootPos, preRFootPos, velFactor), CalculateVelocity(neckPos, preNeckPos, velFactor)));
+                    preRootPos = rootPos;
+                    preLFootPos = lFootPos;
+                    preRFootPos = rFootPos;
+                    preNeckPos = neckPos;
+                }
+                else // Velocity calculations use j+1 - j instead of j - j-1, since there is no previous timestep, and the velocity in frame 0 should be similar to frame 1
+                {
+	                preRootPos = rootPos;
+	                preLFootPos = lFootPos;
+	                preRFootPos = rFootPos;
+	                preNeckPos = neckPos;
+                    allClips[i].SampleAnimation(avatar, (j+1) / allClips[i].frameRate);
+	                rootPos = startSpace.inverse.MultiplyPoint3x4(new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z));
+	                lFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
+	                rFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[2]).position);
+	                neckPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[3]).position);
+	                allPoses.Add(new MMPose(preRootPos, preLFootPos, preRFootPos, preNeckPos,
+		                CalculateVelocity(rootPos, preRootPos, velFactor), CalculateVelocity(lFootPos, preLFootPos, velFactor), 
+		                CalculateVelocity(rFootPos, preRFootPos, velFactor), CalculateVelocity(neckPos, preNeckPos, velFactor)));
+                }
                 allPoints.Add(new TrajectoryPoint(rootPos,
-                    charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position + animator.GetBoneTransform(joints[0]).forward)));
+	                startSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position-startPosForClip + animator.GetBoneTransform(joints[0]).forward)));
             }
 
 			

@@ -130,7 +130,7 @@ public class Movement : MonoBehaviour
         prevPos = transform.position;
         prevRot = transform.rotation.eulerAngles;
 
-        if (Input.GetAxis("Vertical") >= 0.1f)
+        if (Input.GetAxis("Vertical") >= 0.1f || Input.GetAxis("Vertical") <= -0.1f)
             transform.position = prevPos + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value; // Just draw curves simulating the movement, instead of actually moving the player
     }
     public void MoveToMouse() {

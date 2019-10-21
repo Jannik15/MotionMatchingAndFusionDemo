@@ -10,19 +10,19 @@ using UnityEngine;
 public class MotionMatching : MonoBehaviour
 {
     // TODO: Create LookUp system in preproccesing, that can be used instead of pose matching during runtime
-    // TODO: Convert system to Unity Jobs - can only take NativeArrays<float3>
+    // TODO: Convert system to Unity DOTS - can only take NativeArrays<float3>
     // TODO: When preprocessing, also store the data that is being written to CSV as return to feature vector (do load and write step together when preprocessing)
     // TODO: Do correct char space conversion
     // TODO: Check that forwards for trajectories are being created correctly
     // TODO: Create bool for using misc or not, since our current misc system doesn't really make sense
     // TODO: Create some debugger that shows various information about the data, especially the trajectory for each frame
-    // BUG: Might need to remove the root position to get correct values for the curves(?)
     // TODO: Collision detection with raycasting between the trajectory points
-    // TODO: At frame 0, set the velocity to be frame 0 pos - frame 1 pos (absolute value)
     // TODO: Extrapolate empty trajectorypoints (points that go over the frame size for that clip)
 
     // TODO: https://docs.unity3d.com/ScriptReference/AnimationClip.SampleAnimation.html
     // TODO: https://docs.unity3d.com/ScriptReference/HumanBodyBones.html
+
+	// BUG: CSV Data is not correctly converted to char space (feet are in world pos)
 
 
     // --- References
@@ -35,7 +35,6 @@ public class MotionMatching : MonoBehaviour
     private AnimationClip[] allClips;
     public HumanBodyBones[] joints;
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
-    public string[] jointNames;
     public string[][] movementTags =
     {
         new []{ "Idle"},                // State 0
@@ -55,9 +54,8 @@ public class MotionMatching : MonoBehaviour
     private int currentFrame, currentID, currentState;
 
     // --- Weights
-    [Range(0, 1)]
-    public float weightLFootVel = 1.0f, weightRFootVel = 1.0f, weightRootVel = 1.0f, 
-	    weightFeetPos = 1.0f, weightTrajPoints = 1.0f, weightTrajForwards = 1.0f;
+    [Range(0, 1)] public float weightRootVel = 1.0f, weightLFootVel = 1.0f, weightRFootVel = 1.0f, weightNeckVel = 1.0f,
+	    weightNeckPos = 1.0f, weightFeetPos = 1.0f, weightTrajPoints = 1.0f, weightTrajForwards = 1.0f;
 
     // --- Debugstuff
     private int animIterator = -1;
@@ -113,19 +111,19 @@ public class MotionMatching : MonoBehaviour
             }
         }
 
-		// TODO: Remove
-   //     for (int i = 0; i < featureVectors.Count; i++)
-   //     {
-			//if (i != 0)
-			//	featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
-   //         else
-   //         {
-   //             featureVectors[i].CalculateVelocity(featureVectors[i + 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
-   //             featureVectors[i].SetRootVelocity(AbsVector3(featureVectors[i].GetRootVelocity()));
-   //             featureVectors[i].SetLeftFootVelocity(AbsVector3(featureVectors[i].GetLeftFootVelocity()));
-   //             featureVectors[i].SetRightFootVelocity(AbsVector3(featureVectors[i].GetRightFootVelocity()));
-   //         }
-   //     }
+        //TODO: Remove
+        //for (int i = 0; i < featureVectors.Count; i++)
+        //{
+        //    if (i != 0)
+        //        featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+        //    else
+        //    {
+        //        featureVectors[i].CalculateVelocity(featureVectors[i + 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+        //        featureVectors[i].SetRootVelocity(AbsVector3(featureVectors[i].GetRootVelocity()));
+        //        featureVectors[i].SetLeftFootVelocity(AbsVector3(featureVectors[i].GetLeftFootVelocity()));
+        //        featureVectors[i].SetRightFootVelocity(AbsVector3(featureVectors[i].GetRightFootVelocity()));
+        //    }
+        //}
         enumeratorBools = AddEnumeratorBoolsToList();
     }
 
@@ -369,9 +367,9 @@ public class MotionMatching : MonoBehaviour
         //Debug.Log("Pose matching for " + candidates.Count + " candidates!");
         foreach (var candidate in candidates)
         {
-            //float velDif = featureVectors[currentID].ComparePoses(candidate, transform.worldToLocalMatrix, weightLFootVel, weightRFootVel, weightRootVel);
-            float feetPosDif = featureVectors[currentID].GetPose().GetFeetDistance(candidate.GetPose(), transform.worldToLocalMatrix, weightFeetPos);
-            float candidateDif = /*velDif*/ + feetPosDif;
+            float velDif = featureVectors[currentID].GetPose().ComparePoses(candidate.GetPose(), transform.worldToLocalMatrix, weightRootVel, weightLFootVel, weightRFootVel, weightNeckVel);
+            float feetPosDif = featureVectors[currentID].GetPose().GetJointDistance(candidate.GetPose(), transform.worldToLocalMatrix, weightFeetPos, weightNeckPos);
+            float candidateDif = velDif + feetPosDif;
             if (candidateDif < currentDif)
             {
 				//Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
@@ -398,12 +396,6 @@ public class MotionMatching : MonoBehaviour
 		    return true;
         return false;
     }
-
-    private Vector3 AbsVector3(Vector3 vector)
-    {
-        return new Vector3(Mathf.Abs(vector.x), Math.Abs(vector.y), Mathf.Abs(vector.z));
-    }
-
     public List<FeatureVector> GetFeatureVectors()
     {
 	    return featureVectors;
