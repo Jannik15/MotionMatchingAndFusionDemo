@@ -3,7 +3,7 @@ using UnityEngine;
 
 public abstract class BaseGameEvent<T> : ScriptableObject
 {
-	private readonly List<IGameEventListener<T>> eventListeners = new List<GameEventListener<T>>();
+	private readonly List<IGameEventListener<T>> eventListeners = new List<IGameEventListener<T>>();
 
 	public void Raise(T item)
 	{
