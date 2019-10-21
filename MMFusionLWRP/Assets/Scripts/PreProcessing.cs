@@ -44,8 +44,8 @@ public class PreProcessing
                 Vector3 lFootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
                 Vector3 rFootPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[2]).position);
                 Vector3 neckPos = charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[3]).position);
-                allPoses.Add(new MMPose(rootPos, lFootPos, rFootPos, neckPos,
-                    CalculateVelocity(rootPos, ), Vector3.zero, Vector3.zero, Vector3.zero));
+                //allPoses.Add(new MMPose(rootPos, lFootPos, rFootPos, neckPos,
+                //    CalculateVelocity(rootPos, ), Vector3.zero, Vector3.zero, Vector3.zero));
                 allPoints.Add(new TrajectoryPoint(rootPos,
                     charSpace.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position + animator.GetBoneTransform(joints[0]).forward)));
             }

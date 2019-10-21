@@ -113,18 +113,19 @@ public class MotionMatching : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < featureVectors.Count; i++)
-        {
-			if (i != 0)
-				featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
-            else
-            {
-                featureVectors[i].CalculateVelocity(featureVectors[i + 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
-                featureVectors[i].SetRootVelocity(AbsVector3(featureVectors[i].GetRootVelocity()));
-                featureVectors[i].SetLeftFootVelocity(AbsVector3(featureVectors[i].GetLeftFootVelocity()));
-                featureVectors[i].SetRightFootVelocity(AbsVector3(featureVectors[i].GetRightFootVelocity()));
-            }
-        }
+		// TODO: Remove
+   //     for (int i = 0; i < featureVectors.Count; i++)
+   //     {
+			//if (i != 0)
+			//	featureVectors[i].CalculateVelocity(featureVectors[i - 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+   //         else
+   //         {
+   //             featureVectors[i].CalculateVelocity(featureVectors[i + 1].GetPose(), transform.worldToLocalMatrix, allClips[0].frameRate);
+   //             featureVectors[i].SetRootVelocity(AbsVector3(featureVectors[i].GetRootVelocity()));
+   //             featureVectors[i].SetLeftFootVelocity(AbsVector3(featureVectors[i].GetLeftFootVelocity()));
+   //             featureVectors[i].SetRightFootVelocity(AbsVector3(featureVectors[i].GetRightFootVelocity()));
+   //         }
+   //     }
         enumeratorBools = AddEnumeratorBoolsToList();
     }
 
@@ -368,9 +369,9 @@ public class MotionMatching : MonoBehaviour
         //Debug.Log("Pose matching for " + candidates.Count + " candidates!");
         foreach (var candidate in candidates)
         {
-            float velDif = featureVectors[currentID].ComparePoses(candidate, transform.worldToLocalMatrix, weightLFootVel, weightRFootVel, weightRootVel);
+            //float velDif = featureVectors[currentID].ComparePoses(candidate, transform.worldToLocalMatrix, weightLFootVel, weightRFootVel, weightRootVel);
             float feetPosDif = featureVectors[currentID].GetPose().GetFeetDistance(candidate.GetPose(), transform.worldToLocalMatrix, weightFeetPos);
-            float candidateDif = velDif + feetPosDif;
+            float candidateDif = /*velDif*/ + feetPosDif;
             if (candidateDif < currentDif)
             {
 				//Debug.Log("Candidate diff: " + velDif + " < " + " Current diff:" + currentDif);
@@ -401,5 +402,10 @@ public class MotionMatching : MonoBehaviour
     private Vector3 AbsVector3(Vector3 vector)
     {
         return new Vector3(Mathf.Abs(vector.x), Math.Abs(vector.y), Mathf.Abs(vector.z));
+    }
+
+    public List<FeatureVector> GetFeatureVectors()
+    {
+	    return featureVectors;
     }
 }
