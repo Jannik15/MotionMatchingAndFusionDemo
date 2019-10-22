@@ -295,16 +295,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: movementMultiplier.UseUnique
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: movementSpeed.UseUnique
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: lerpTime.UseUnique
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: movementMultiplier.UniqueValue
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: lerpTime.Variable
+      value: 
+      objectReference: {fileID: 11400000, guid: bec0ca293c749224cbf6aab8e6597e25,
+        type: 2}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: movementSpeed.Variable
+      value: 
+      objectReference: {fileID: 11400000, guid: 588fd1d65d9194242915fb9c4c8206d0,
+        type: 2}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: movementSpeed.UniqueValue
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: lerpTime.UniqueValue
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1861943230, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
+      propertyPath: movementMultiplier.Variable
+      value: 
+      objectReference: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be,
+        type: 2}
     - target: {fileID: 1861943229, guid: 33ef752826940aa449b2d9aca8251475, type: 3}
       propertyPath: _preProcess
       value: 0
