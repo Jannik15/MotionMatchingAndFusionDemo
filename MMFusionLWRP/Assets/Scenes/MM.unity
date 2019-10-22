@@ -391,7 +391,7 @@ MonoBehaviour:
   _isMotionMatching: 0
   _isIdling: 0
   queryRateInFrames: 10
-  candidatesPerMisc: 30
+  candidatesPerMisc: 5
   weightRootVel: 1
   weightLFootVel: 1
   weightRFootVel: 1
