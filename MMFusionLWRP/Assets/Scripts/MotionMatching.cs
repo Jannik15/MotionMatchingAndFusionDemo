@@ -241,7 +241,7 @@ public class MotionMatching : MonoBehaviour
 			    break;
 		    }
 		}
-		Debug.Log("Updating animation " + currentClip.name + " to frame " + frame + " with ID " + id);
+		//Debug.Log("Updating animation " + currentClip.name + " to frame " + frame + " with ID " + id);
         animator.CrossFadeInFixedTime(currentClip.name, 0.3f, 0, frame / currentClip.frameRate); // 0.3f was recommended by Magnus
         currentID = id;
         currentFrame = frame;
