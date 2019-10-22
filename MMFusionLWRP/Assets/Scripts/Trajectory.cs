@@ -8,10 +8,6 @@ public class Trajectory
     private TrajectoryPoint[] trajectoryPoints;
     private TrajectoryPoint rootPoint;
     private Quaternion rootQ;
-
-    
-    private static int factor = 10; // Needs to reflect differences between feet, compared trajectories, and weighted velocities
-    // idlefootdist = 0.17, weighted velocities: 
     public Trajectory(TrajectoryPoint[] _trajectoryPoints)
     {
         trajectoryPoints = _trajectoryPoints;

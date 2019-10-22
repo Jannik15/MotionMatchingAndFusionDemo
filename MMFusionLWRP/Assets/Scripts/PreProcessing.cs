@@ -43,7 +43,7 @@ public class PreProcessing
 	            allClips[i].SampleAnimation(avatar, j / allClips[i].frameRate);
 	            allClipNames.Add(allClips[i].name);
 	            allFrames.Add(j);
-                Vector3 rootPos = startSpace.inverse.MultiplyPoint3x4(new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z));
+                Vector3 rootPos = startSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position);
                 charSpace.SetTRS(new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z),
 	                animator.GetBoneTransform(joints[0]).rotation, Vector3.one);
                 Vector3 lFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
@@ -65,8 +65,8 @@ public class PreProcessing
 	                preLFootPos = lFootPos;
 	                preRFootPos = rFootPos;
 	                preNeckPos = neckPos;
-                    allClips[i].SampleAnimation(avatar, (j+1) / allClips[i].frameRate);
-	                rootPos = startSpace.inverse.MultiplyPoint3x4(new Vector3(animator.GetBoneTransform(joints[0]).position.x, 0.0f, animator.GetBoneTransform(joints[0]).position.z));
+	                allClips[i].SampleAnimation(avatar, 1 / allClips[i].frameRate); // Sampling animation at frame 1 to get difference between frame 0 and 1
+	                rootPos = startSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position);
 	                lFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[1]).position);
 	                rFootPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[2]).position);
 	                neckPos = charSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[3]).position);
@@ -74,11 +74,12 @@ public class PreProcessing
 		                CalculateVelocity(rootPos, preRootPos, velFactor), CalculateVelocity(lFootPos, preLFootPos, velFactor), 
 		                CalculateVelocity(rFootPos, preRFootPos, velFactor), CalculateVelocity(neckPos, preNeckPos, velFactor)));
                 }
-                allPoints.Add(new TrajectoryPoint(rootPos,
-	                startSpace.inverse.MultiplyPoint3x4(animator.GetBoneTransform(joints[0]).position-startPosForClip + animator.GetBoneTransform(joints[0]).forward)));
+
+                allPoints.Add(new TrajectoryPoint(rootPos, 
+	                startSpace.MultiplyVector(animator.GetBoneTransform(joints[0]).forward)));
             }
 
-			
+
         }
         csvHandler.WriteCSV(allPoses, allPoints, allClipNames, allFrames);
         
