@@ -13,6 +13,5 @@
 2019-10-23 13:48:21.8508 [DEBUG] Connecting
 2019-10-23 13:48:21.8609 [DEBUG] Connecting to room (106651:SceneFusion:SceneFusion) via TCP at roommanager-ec2-35-164-71-216.kinematicsoup.com:21312
 2019-10-23 13:48:34.2517 [DEBUG] Sent C:/Users/bacht/Documents/GitHub/MotionMatchingAndFusionDemo/MMFusionLWRP/KSEditorLogs/SessionLogs/session.106651-637074353018609071.log
-2019-10-23 13:48:39.3112 [INFO] Launching Session: MovementTest
 2019-10-23 13:48:39.9910 [DEBUG] Connecting
 2019-10-23 13:48:40.0008 [DEBUG] Connecting to room (106652:SceneFusion:SceneFusion) via TCP at roommanager-ec2-35-164-71-216.kinematicsoup.com:21312
