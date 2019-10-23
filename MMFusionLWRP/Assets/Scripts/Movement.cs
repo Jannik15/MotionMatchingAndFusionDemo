@@ -86,9 +86,13 @@ public class Movement : MonoBehaviour
 			    Gizmos.DrawLine(GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
 				    GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
 		    }
-
-
+		    Debug.Log("Desired dir: " + desiredDir + " | Input: " + new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")));
 		    Gizmos.color = Color.blue;
+            Gizmos.DrawLine(Vector3.zero, new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")));
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(Vector3.zero, desiredDir);
+
+            Gizmos.color = Color.blue;
 		    Gizmos.DrawLine(transform.position, desiredDir);
         }
     }
@@ -123,7 +127,6 @@ public class Movement : MonoBehaviour
 
         // Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
         Quaternion lookRotation = desiredDir != Vector3.zero ? Quaternion.LookRotation(desiredDir) : Quaternion.identity; // Shorthand if : else
-		
         for (int i = 0; i < points.Length; i++)
 		{
 			if (i > 0)
