@@ -1,0 +1,6 @@
+2019-10-23 10:31:05.0008 [DEBUG] Scene Fusion version 1.8.5-0
+2019-10-23 10:31:05.0209 [INFO] Setting define symbol SCENE_FUSION
+2019-10-23 10:31:18.0258 [DEBUG] Scene Fusion version 1.8.5-0
+2019-10-23 10:32:03.1358 [INFO] Launching Session: MovementTest
+2019-10-23 10:32:03.9358 [DEBUG] Connecting
+2019-10-23 10:32:03.9508 [DEBUG] Connecting to room (106649:SceneFusion:SceneFusion) via TCP at roommanager-ec2-35-164-71-216.kinematicsoup.com:21312

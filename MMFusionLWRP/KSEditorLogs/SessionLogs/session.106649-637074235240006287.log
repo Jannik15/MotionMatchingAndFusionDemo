@@ -1,0 +1,25 @@
+2019-10-23 10:32:04.1908 [DEBUG] Validating model...
+2019-10-23 10:32:04.3808 [DEBUG] Model updated
+2019-10-23 10:32:04.3808 [DEBUG] Authenticating with server...
+2019-10-23 10:32:04.9756 [DEBUG] Connected to room. (106649:SceneFusion:SceneFusion)
+2019-10-23 10:32:04.9756 [INFO] Connected to server.
+2019-10-23 10:32:04.9756 [DEBUG] OS : Microsoft Windows NT 10.0.18362.0
+2019-10-23 10:32:04.9756 [DEBUG] Unity Version : 2019.1.8f1
+2019-10-23 10:32:04.9756 [DEBUG] Pro License : True
+2019-10-23 10:32:04.9756 [DEBUG] Platform : WindowsEditor
+2019-10-23 10:32:04.9756 [DEBUG] Build Target : StandaloneWindows64
+2019-10-23 10:32:04.9807 [DEBUG] Scene Fusion version : 1.8.5
+2019-10-23 10:32:04.9807 [DEBUG] Scene Fusion client build : 0
+2019-10-23 10:32:04.9807 [DEBUG] User : nibaha35@hotmail.com
+2019-10-23 10:32:04.9807 [DEBUG] Waiting for server response
+2019-10-23 10:32:05.0707 [DEBUG] Tier: Free, Permissions: 00000200
+2019-10-23 10:32:05.0707 [DEBUG] User Permissions: FFFFFFFF
+2019-10-23 10:32:05.4057 [DEBUG] No stand-in for UnityEngine.LocalizationAsset
+2019-10-23 10:32:05.4057 [DEBUG] No stand-in for UnityEngine.ProceduralMaterial
+2019-10-23 10:32:05.4057 [DEBUG] No stand-in for UnityEngine.ProceduralTexture
+2019-10-23 10:32:05.4057 [DEBUG] No stand-in for UnityEngine.TerrainLayer
+2019-10-23 10:32:05.4057 [DEBUG] No stand-in for UnityEngine.Experimental.VFX.VisualEffectAsset
+2019-10-23 10:32:05.8105 [DEBUG] Uploading scene 'MovementTest'
+2019-10-23 10:32:05.9005 [DEBUG] Compressing scene data
+2019-10-23 10:32:05.9907 [DEBUG] Spawn request. (Objects: 87)
+2019-10-23 10:32:06.2956 [DEBUG] Loading complete
