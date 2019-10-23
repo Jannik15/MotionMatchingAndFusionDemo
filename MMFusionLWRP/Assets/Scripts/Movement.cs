@@ -1,9 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
 using UnityEngine;
-using Quaternion = UnityEngine.Quaternion;
-using Vector3 = UnityEngine.Vector3;
 
 public class Movement : MonoBehaviour
 {
@@ -70,8 +67,30 @@ public class Movement : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-	    Gizmos.color = Color.blue;
-	    Gizmos.DrawLine(transform.position, desiredDir);
+	    if (Application.isPlaying)
+	    {
+		    Matrix4x4 invCharSpace = transform.worldToLocalMatrix.inverse;
+		    Matrix4x4 charSpace = transform.localToWorldMatrix;
+		    Matrix4x4 newSpace = new Matrix4x4();
+		    newSpace.SetTRS(transform.position, Quaternion.identity, transform.lossyScale);
+
+		    Gizmos.color = Color.red; // Movement Trajectory
+		    for (int i = 0; i < GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
+		    {
+			    // Position
+			    Gizmos.DrawWireSphere(GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+			    Gizmos.DrawLine(i != 0 ? GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
+				    GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
+
+			    // Forward
+			    Gizmos.DrawLine(GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
+				    GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
+		    }
+
+
+		    Gizmos.color = Color.blue;
+		    Gizmos.DrawLine(transform.position, desiredDir);
+        }
     }
 
     private void UpdateSpeed()
@@ -102,20 +121,18 @@ public class Movement : MonoBehaviour
         TrajectoryPoint[] points = new TrajectoryPoint[mm.pointsPerTrajectory];
         float tempSpeed = speed >= 0.1f ? Mathf.Clamp(speed, 0.1f, 1.0f) : 1.0f;
 
+        // Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
+        Quaternion lookRotation = desiredDir != Vector3.zero ? Quaternion.LookRotation(desiredDir) : Quaternion.identity; // Shorthand if : else
+		
         for (int i = 0; i < points.Length; i++)
 		{
 			if (i > 0)
 			{
-				// Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
-                Quaternion lookRotation = desiredDir != Vector3.zero ? Quaternion.LookRotation(desiredDir) : Quaternion.identity; // Shorthand if : else
-
-                Vector3 tempPos = points[i - 1].GetPoint() + Vector3.Slerp(transform.position, desiredDir,
-                                      mm.framesBetweenTrajectoryPoints / 100.0f * i) * speed;
-                //Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation,
-                //                      mm.framesBetweenTrajectoryPoints / 100.0f * i) * Vector3.forward * Mathf.Clamp(speed + 0.01f, -1.0f, 1.0f);
+				Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation,
+					                  mm.framesBetweenTrajectoryPoints / 100.0f * i) * desiredDir /** Mathf.Clamp(speed + 0.01f, -1.0f, 1.0f)*/;
 
                 Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, 
-                                          mm.framesBetweenTrajectoryPoints / 100.0f * i) * Vector3.forward * Mathf.Clamp(speed + 0.01f, -1.0f, 1.0f);
+                                          mm.framesBetweenTrajectoryPoints / 100.0f * i) * Vector3.forward /** Mathf.Clamp(speed + 0.01f, -1.0f, 1.0f)*/;
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}
 			else
@@ -133,20 +150,16 @@ public class Movement : MonoBehaviour
     {
         rotationValue = (rotationValue + (Input.GetAxis("Horizontal") * rotateSpeed)) % 360;
         Vector3 newRot = new Vector3(0.0f, rotationValue, 0.0f);
-
-        //Vector3 newPos = Vector3.Lerp(transform.position, transform.position + new Vector3(0.0f, 0.0f, Input.GetAxis("Vertical")) * movementSpeed.value, lerpTime.value);
-
         Quaternion rotation = Quaternion.Euler(0.0f,newRot.y,0.0f);
-        
-        transform.rotation = rotation /*Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime)*/;
+
+        transform.rotation = rotation;
         prevPos = transform.position;
         prevRot = transform.rotation.eulerAngles;
 
-        //Debug.Log("Position is: " + transform.position + " | Desired direction is: " + (desiredDir * speed));
-
-        desiredDir =
+        Vector3 desiredPos =
 	        transform.worldToLocalMatrix.inverse.MultiplyPoint3x4(new Vector3(Input.GetAxis("Horizontal"), 0.0f,
 		        Input.GetAxis("Vertical")) * Mathf.Clamp(speed + 0.1f, 0.0f, 1.0f));
+        desiredDir = desiredPos - transform.position;
 
         if (Input.GetAxis("Vertical") >= 0.1f || Input.GetAxis("Vertical") <= -0.1f)
 	        transform.position = prevPos + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value;

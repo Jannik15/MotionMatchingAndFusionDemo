@@ -417,15 +417,15 @@ MonoBehaviour:
   lerpTime:
     UseUnique: 0
     UniqueValue: 0
-    variable: {fileID: 11400000, guid: bec0ca293c749224cbf6aab8e6597e25, type: 2}
+    Variable: {fileID: 11400000, guid: bec0ca293c749224cbf6aab8e6597e25, type: 2}
   movementSpeed:
     UseUnique: 0
     UniqueValue: 1
-    variable: {fileID: 11400000, guid: 588fd1d65d9194242915fb9c4c8206d0, type: 2}
+    Variable: {fileID: 11400000, guid: 588fd1d65d9194242915fb9c4c8206d0, type: 2}
   movementMultiplier:
     UseUnique: 0
     UniqueValue: 0
-    variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
+    Variable: {fileID: 11400000, guid: 4e390399bf43c0b48a666ec4508679be, type: 2}
   speed: 0
   angSpeed: 0
   rotationValue: 0
