@@ -18,19 +18,31 @@ public class Movement : MonoBehaviour
 	// --- Public
     [Tooltip("In degrees")] public float rotateToMoveThreshold = 15f;
     public float rotateSpeed = 2.0f;
-    public FloatReference lerpTime, movementSpeed, movementMultiplier;
+    public FloatReference walkSpeed, runSpeed, lerpTime, movementSpeed, movementMultiplier;
 
     // --- Private 
-    private Vector3 prevPos, prevRot, goalPos, desiredDir;
+    private Vector3 prevPos, prevRot, goalPos, slerpRotation;
 
-	[SerializeField]
+    private Vector3 inputDir, charInputDir, desiredDir, charForward; 
+    [SerializeField]
     private float speed, angSpeed, rotationValue;
+
+	private float speedSmoothVelocity, turnSmoothVelocity;
+    private Matrix4x4 charSpace;
+    private Quaternion lookRotation;
 
     private string movementType;
 
     private void Awake()
     {
 	    mm = GetComponent<MotionMatching>();
+    }
+
+    private void Start()
+    {
+	    charSpace = new Matrix4x4();
+	    lookRotation = Quaternion.identity;
+		slerpRotation = Vector3.zero;
     }
 	
     private void FixedUpdate()
@@ -74,26 +86,48 @@ public class Movement : MonoBehaviour
 		    Matrix4x4 newSpace = new Matrix4x4();
 		    newSpace.SetTRS(transform.position, Quaternion.identity, transform.lossyScale);
 
-		    Gizmos.color = Color.red; // Movement Trajectory
-		    for (int i = 0; i < GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
-		    {
-			    // Position
-			    Gizmos.DrawWireSphere(GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-			    Gizmos.DrawLine(i != 0 ? GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
-				    GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
+            Gizmos.color = Color.red; // Movement Trajectory
+            for (int i = 1; i < GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
+            {
+                // Position
+                Gizmos.DrawWireSphere(GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+                Gizmos.DrawLine(i != 0 ? GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
+                 GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
                 // Forward
                 Gizmos.DrawLine(GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
                  GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
             }
 
-		    Gizmos.color = Color.blue;
-		    Gizmos.DrawLine(Vector3.zero, desiredDir);
-		    Gizmos.color = Color.magenta;
-		    Matrix4x4 transformRotMatrix = new Matrix4x4();
-		    transformRotMatrix.SetTRS(Vector3.zero, transform.rotation, Vector3.one);
-            Gizmos.DrawLine(Vector3.zero, transformRotMatrix.MultiplyPoint3x4(desiredDir));
-	    }
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(Vector3.zero, inputDir);
+            Gizmos.DrawWireSphere(inputDir, 0.15f);
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(Vector3.zero, charInputDir);
+            Gizmos.DrawWireSphere(charInputDir, 0.15f);
+
+            Gizmos.color = Color.magenta;
+			Gizmos.DrawLine(Vector3.zero, desiredDir);
+			Gizmos.DrawWireSphere(desiredDir, 0.15f);
+
+            //Gizmos.color = Color.cyan;
+            //Gizmos.DrawLine(Vector3.zero, charDesiredDir);
+            //Gizmos.DrawWireSphere(charDesiredDir, 0.15f);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(Vector3.zero, transform.forward);
+            Gizmos.DrawWireSphere(transform.forward, 0.15f);
+
+            Gizmos.color = Color.white;
+            Gizmos.DrawLine(Vector3.zero, Vector3.zero + lookRotation * Vector3.forward * speed);
+            Gizmos.DrawWireSphere(Vector3.zero + lookRotation * Vector3.forward * speed, 0.15f);
+
+            //Gizmos.color = Color.blue;
+            //Quaternion lookRotation = charInputDir != Vector3.zero ? Quaternion.LookRotation(charInputDir) : transform.rotation;
+            //         Gizmos.DrawLine(Vector3.zero, Quaternion.Slerp(transform.rotation, lookRotation, 1.0f) * Vector3.forward);
+            //Gizmos.DrawWireSphere(Quaternion.Slerp(transform.rotation, lookRotation, 1.0f) * Vector3.forward, 0.15f);
+        }
     }
 
     private void UpdateSpeed()
@@ -124,17 +158,12 @@ public class Movement : MonoBehaviour
         TrajectoryPoint[] points = new TrajectoryPoint[mm.pointsPerTrajectory];
         float tempSpeed = speed >= 0.1f ? Mathf.Clamp(speed, 0.1f, 1.0f) : 1.0f;
 
-        Matrix4x4 transformRotMatrix = new Matrix4x4();
-        transformRotMatrix.SetTRS(Vector3.zero, transform.rotation, Vector3.one);
-        Vector3 charDesiredDir = transformRotMatrix.MultiplyPoint3x4(desiredDir);
-        // Quaternion.LookRotation spams debug errors when input is vector3.zero, this removes that possibility
-        Quaternion lookRotation = charDesiredDir != Vector3.zero ? Quaternion.LookRotation(charDesiredDir) : transform.rotation; // Shorthand if : else
-        Debug.Log("rotation: " + transform.rotation + " | lookrotation: " + lookRotation + " | desired dir: " + desiredDir + " | charDesired dir: " + charDesiredDir);
+        //Debug.Log("rotation: " + transform.rotation + " | lookrotation: " + lookRotation + " | desired dir: " + desiredDir);
         for (int i = 0; i < points.Length; i++)
 		{
-			if (i > 0) // TODO: Movement trajectory is too aggressive compared to the actual movement - check the movement script and make sure the desired dir is = used input
-			{
-                Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (float)(i + 1) / points.Length) * (desiredDir * Mathf.Clamp(speed + 0.1f, -1.0f, 1.0f));
+			if (i > 0)
+			{ // TODO: Pay attention to the direction that is multiplied into the slerped quaternion
+                Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (float)(i + 1) / points.Length) * charInputDir * speed;
 
                 Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, (float)(i + 1) / points.Length) * Vector3.forward;
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
@@ -150,22 +179,64 @@ public class Movement : MonoBehaviour
 	    return (transform.position - prevPos) / Time.fixedDeltaTime;
     }
 
-    public void KeyBoardMove()
+    public void KeyBoardMove() // TODO: Cleanup
     {
-        rotationValue = (rotationValue + (Input.GetAxis("Horizontal") * rotateSpeed)) % 360;
-        Vector3 newRot = new Vector3(0.0f, rotationValue, 0.0f);
-        Quaternion rotation = Quaternion.Euler(0.0f,newRot.y,0.0f);
+	    // Calculate desired directions based on input TODO: desiredDir (Rotation), charInputDir dont rotate for backward, desiredForward?
+        charSpace.SetTRS(Vector3.zero, transform.rotation, Vector3.one);
 
-        transform.rotation = rotation;
-        prevPos = transform.position;
-        prevRot = transform.rotation.eulerAngles;
-        Matrix4x4 unrotatedTransform = new Matrix4x4();
-        unrotatedTransform.SetTRS(transform.position, Quaternion.identity, Vector3.one);
-        Vector3 desiredPos = unrotatedTransform.MultiplyPoint3x4(new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")));
-        desiredDir = desiredPos - transform.position;
+        Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical"));
+	    inputDir = Clamp(input);
+	    charInputDir = charSpace.MultiplyPoint3x4(inputDir);
 
-        if (Input.GetAxis("Vertical") >= 0.1f || Input.GetAxis("Vertical") <= -0.1f)
-	        transform.position = prevPos + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value;
+	    slerpRotation = Quaternion.Slerp(transform.rotation, lookRotation, 1.0f) * charInputDir;
+	    Vector3	desiredPos = transform.worldToLocalMatrix.inverse.MultiplyPoint3x4(new Vector3(0.0f, 0.0f, input.z)) + slerpRotation;
+        desiredDir = Clamp(desiredPos - transform.position);
+
+		if (input.z >= 0.0f)
+			charForward = charSpace.MultiplyPoint3x4(Clamp(new Vector3(input.x, 0.0f, input.z)));
+		else if (input.x <= -0.05f || input.x >= 0.05f) // TODO: Simplify
+			charForward = charSpace.MultiplyPoint3x4(Clamp(new Vector3(input.x, 0.0f, -input.z)));
+		else
+			charForward = Vector3.zero;
+
+		lookRotation = charForward != Vector3.zero ? Quaternion.LookRotation(charForward) : transform.rotation; // Avoid LookRotation zero-errors 
+
+        // Rotation along the y axis based on vector3 x input
+        if (Input.GetAxis("Horizontal") >= 0.1f || Input.GetAxis("Horizontal") <= -0.1f)
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, rotateSpeed / 100.0f);
+
+        // Movement along the z axis - Desired dir has to change over time
+        bool running = Input.GetKey(KeyCode.LeftShift);
+        float targetSpeed = ((running) ? runSpeed.value : walkSpeed.value) * inputDir.magnitude;
+        speed = Mathf.SmoothDamp(speed, targetSpeed, ref speedSmoothVelocity, movementSpeed.value);
+
+		transform.Translate(transform.forward * speed / 60, Space.World);
+
+		if (Input.GetAxis("Vertical") >= 0.1f)
+		{
+			transform.position = transform.position + Quaternion.Slerp(transform.rotation, lookRotation, movementSpeed.value) * inputDir * movementSpeed.value;
+			//transform.position = transform.position + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value;
+        }
+        else
+            transform.position = transform.position + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value / 2.0f;
+
+
+
+        //      Quaternion lookRotation = desiredDir != Vector3.zero ? Quaternion.LookRotation(charRotSpace.MultiplyPoint3x4(desiredDir)) : transform.rotation; // Avoid LookRotation zero-errors 
+        //transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, 0.1f);
+
+        //      //Matrix4x4 unrotatedTransform = new Matrix4x4();
+        //      //unrotatedTransform.SetTRS(transform.position, Quaternion.identity, Vector3.one);
+        //      //Vector3 desiredPos = unrotatedTransform.MultiplyPoint3x4(new Vector3(0.0f, 0.0f, Input.GetAxis("Vertical")));
+        //      Vector3 desiredPos = transform.worldToLocalMatrix.inverse.MultiplyPoint3x4(new Vector3(0.0f, 0.0f, Input.GetAxis("Vertical")));
+        //      desiredDir = desiredPos - transform.position;
+
+        //      if (Input.GetAxis("Vertical") >= 0.1f || Input.GetAxis("Vertical") <= -0.1f)
+        //      {
+        //       //transform.position = prevPos + transform.forward * Input.GetAxis("Vertical") * movementSpeed.value;
+        //       transform.position = transform.position + desiredDir * movementSpeed.value;
+        //      }
+        //transform.position = prevPos; // TODO: Delete this
     }
     public void MoveToMouse() {
         if(Input.GetMouseButtonDown(0)) {
@@ -199,7 +270,6 @@ public class Movement : MonoBehaviour
 
                 Quaternion rotation = goalPos - transform.position != Vector3.zero
                     ? Quaternion.LookRotation(goalPos - transform.position) : Quaternion.identity; // Shorthand if : else
-                //transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
 
                 transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.fixedDeltaTime * speed + 0.1f);
 
@@ -258,4 +328,15 @@ public class Movement : MonoBehaviour
         return tempBool;
     }
 
+	/// <summary>
+    /// Returns a Vector3 clamped to a magnitude of 1. Useful for creating dynamic direction vectors.
+    /// </summary>
+    /// <param name="vector"></param>
+    /// <returns></returns>
+    public Vector3 Clamp(Vector3 vector)
+    {
+	    if (vector.magnitude >= 1)
+		    return vector.normalized;
+	    return vector;
+    }
 }

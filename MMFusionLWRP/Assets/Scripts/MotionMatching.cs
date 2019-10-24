@@ -188,31 +188,31 @@ public class MotionMatching : MonoBehaviour
 		    newSpace.SetTRS(transform.position, Quaternion.identity, transform.lossyScale);
 
             Gizmos.color = Color.red; // Movement Trajectory
-    //        for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
-		  //  {
-				//// Position
-    //            Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-    //            Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
-	   //             movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
+            //for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
+            //{
+            //    // Position
+            //    Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+            //    Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
+            //        movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
-    //            // Forward
-				//Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
-				//	movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
-		  //  }
+            //    // Forward
+            //    Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
+            //        movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
+            //}
 
             Gizmos.color = Color.green; // Animation Trajectory
-            for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
-		    {
-				// Position
-				Gizmos.DrawWireSphere(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-				//if (i != 0)
-				//	Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint(), 
-				//		featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint());
+    //        for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
+		  //  {
+				//// Position
+				//Gizmos.DrawWireSphere(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+				////if (i != 0)
+				////	Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint(), 
+				////		featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
-				// Forward
-				Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(),
-					featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward());
-		    }
+				//// Forward
+				//Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(),
+				//	featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward());
+		  //  }
 
    //         Gizmos.color = Color.magenta;
 			//Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRootPos()), 0.1f);
