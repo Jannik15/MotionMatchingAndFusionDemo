@@ -188,45 +188,45 @@ public class MotionMatching : MonoBehaviour
 		    newSpace.SetTRS(transform.position, Quaternion.identity, transform.lossyScale);
 
             Gizmos.color = Color.red; // Movement Trajectory
-            //for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
-            //{
-            //    // Position
-            //    Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-            //    Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
-            //        movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
+            for (int i = 0; i < movement.GetMovementTrajectory().GetTrajectoryPoints().Length; i++) // Gizmos for movement
+            {
+                // Position
+                Gizmos.DrawWireSphere(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
+                Gizmos.DrawLine(i != 0 ? movement.GetMovementTrajectory().GetTrajectoryPoints()[i - 1].GetPoint() : transform.position,
+                    movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint());
 
-            //    // Forward
-            //    Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
-            //        movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
-            //}
+                // Forward
+                Gizmos.DrawLine(movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetPoint(),
+                    movement.GetMovementTrajectory().GetTrajectoryPoints()[i].GetForward());
+            }
 
             Gizmos.color = Color.green; // Animation Trajectory
-    //        for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
-		  //  {
-				//// Position
-				//Gizmos.DrawWireSphere(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(), 0.2f);
-				////if (i != 0)
-				////	Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint(), 
-				////		featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint());
+            for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
+            {
+                // Position
+                Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 0.2f);
+				if (i != 0)
+					Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i - 1].GetPoint()),
+						invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()));
 
-				//// Forward
-				//Gizmos.DrawLine(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint(),
-				//	featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward());
-		  //  }
+                // Forward
+                Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()),
+	                invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetForward()));
+            }
 
-   //         Gizmos.color = Color.magenta;
-			//Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRootPos()), 0.1f);
-			//Gizmos.color = Color.yellow; // Pose positions
-   //         Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetLeftFootPos()), 0.1f);
-   //         Gizmos.color = Color.blue;
-			//Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRightFootPos()), 0.1f);
+            //         Gizmos.color = Color.magenta;
+            //Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRootPos()), 0.1f);
+            //Gizmos.color = Color.yellow; // Pose positions
+            //         Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetLeftFootPos()), 0.1f);
+            //         Gizmos.color = Color.blue;
+            //Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetPose().GetRightFootPos()), 0.1f);
 
-			//Gizmos.color = Color.cyan;
-			//Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetRootVelocity()));
-			//Gizmos.color = Color.gray;
-			//Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetLeftFootVelocity()));
-			//Gizmos.color = Color.white;
-   //         Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetRightFootVelocity()));
+            //Gizmos.color = Color.cyan;
+            //Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetRootVelocity()));
+            //Gizmos.color = Color.gray;
+            //Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetLeftFootVelocity()));
+            //Gizmos.color = Color.white;
+            //         Gizmos.DrawLine(invCharSpace.MultiplyPoint3x4(Vector3.zero), invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetRightFootVelocity()));
 
         }
     }
@@ -342,7 +342,7 @@ public class MotionMatching : MonoBehaviour
                     else
                     {
                         possibleCandidates[currentMisc, j] = featureVectors[i];
-                        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix, weightTrajPoints, weightTrajForwards);
+                        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
                     }
                 }
                 if (tempVal < comparison)

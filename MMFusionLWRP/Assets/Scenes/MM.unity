@@ -414,6 +414,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotateToMoveThreshold: 15
   rotateSpeed: 2
+  sneakSpeed:
+    UseUnique: 0
+    UniqueValue: 0
+    Variable: {fileID: 11400000, guid: 3096e09f2cb51544889a3ab34f2d2699, type: 2}
   walkSpeed:
     UseUnique: 0
     UniqueValue: 0
