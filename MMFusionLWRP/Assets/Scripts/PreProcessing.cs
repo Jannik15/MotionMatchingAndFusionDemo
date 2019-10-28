@@ -58,6 +58,9 @@ public class PreProcessing
                     preLFootPos = lFootPos;
                     preRFootPos = rFootPos;
                     preNeckPos = neckPos;
+
+                    allPoints.Add(new TrajectoryPoint(rootPos,
+	                    rootPos + startSpace.MultiplyVector(animator.GetBoneTransform(joints[0]).forward)));
                 }
                 else // Velocity calculations use j+1 - j instead of j - j-1, since there is no previous timestep, and the velocity in frame 0 should be similar to frame 1
                 {
@@ -73,10 +76,10 @@ public class PreProcessing
 	                allPoses.Add(new MMPose(preRootPos, preLFootPos, preRFootPos, preNeckPos,
 		                CalculateVelocity(rootPos, preRootPos, velFactor), CalculateVelocity(lFootPos, preLFootPos, velFactor), 
 		                CalculateVelocity(rFootPos, preRFootPos, velFactor), CalculateVelocity(neckPos, preNeckPos, velFactor)));
-                }
 
-                allPoints.Add(new TrajectoryPoint(rootPos, 
-	                startSpace.MultiplyVector(animator.GetBoneTransform(joints[0]).forward)));
+	                allPoints.Add(new TrajectoryPoint(rootPos,
+		                preRootPos + startSpace.MultiplyVector(animator.GetBoneTransform(joints[0]).forward)));
+                }
             }
 
 

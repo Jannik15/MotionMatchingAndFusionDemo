@@ -163,10 +163,10 @@ public class Movement : MonoBehaviour
 			if (i > 0)
 			{
 				//Vector3 tempPos = points[i - 1].GetPoint() + Quaternion.Slerp(transform.rotation, lookRotation, (float) (i + 1) / points.Length) * Vector3.forward * Mathf.Clamp(speed, 0.1f, 1.0f);
-				Vector3 tempPos = points[i - 1].GetPoint() + inputDir * Mathf.Clamp(speed, 0.1f, 1.0f);
+				Vector3 tempPos = points[i - 1].GetPoint() + inputDir * speed;
 
                 Vector3 tempForward = tempPos + Quaternion.Slerp(transform.rotation, lookRotation, 
-	                                      (float)(i + 1) / points.Length) * Vector3.forward;
+	                                      (float)(i + 1) / points.Length) * Vector3.forward  * rotationValue;
 
                 points[i] = new TrajectoryPoint(tempPos, tempForward);
 			}

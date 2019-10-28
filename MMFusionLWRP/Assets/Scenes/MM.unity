@@ -383,7 +383,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   joints: 00000000050000000600000009000000
   animContainer: {fileID: 11400000, guid: d984637c3976fac478d264e510426c2d, type: 2}
-  _preProcess: 0
+  _preProcess: 1
   _playAnimationMode: 0
   pointsPerTrajectory: 4
   framesBetweenTrajectoryPoints: 10
