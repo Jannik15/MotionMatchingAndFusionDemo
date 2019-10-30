@@ -35,11 +35,13 @@ public class MotionMatching : MonoBehaviour
     private AnimationClip[] allClips;
     public HumanBodyBones[] joints;
     public AnimContainer animContainer; // put ref to chosen animation container scriptable object
-    public string[][] movementTags =
+    public string[][] movementTags = // TODO: Create an inspector version of this
     {
-        new []{ "Idle"},                // State 0
-        new []{ "Sneak", "Walk", "Run" }         // State 1
+        new []{ "Idle"},                        // State 0
+        new []{ "Sneak", "Walk", "Run" }        // State 1
     };
+
+    [SerializeField] private string[] states;
 
     private List<bool> enumeratorBools;
 
@@ -307,10 +309,12 @@ public class MotionMatching : MonoBehaviour
     #endregion
 
     List<FeatureVector> TrajectoryMatching(Trajectory movementTraj)
-    {
+    { // TODO: Instantiate elsewhere, .Clear() instead
         List<FeatureVector> candidates = new List<FeatureVector>();
-        FeatureVector[,] possibleCandidates = new FeatureVector[movementTags[currentState].Length, candidatesPerMisc];
-        float[,] values = new float[movementTags[currentState].Length, candidatesPerMisc];
+        //FeatureVector[,] possibleCandidates = new FeatureVector[movementTags[currentState].Length, candidatesPerMisc];
+        FeatureVector[] possibleCandidates = new FeatureVector[candidatesPerMisc];
+        //float[,] values = new float[movementTags[currentState].Length, candidatesPerMisc];
+        float[] values = new float[candidatesPerMisc];
         int currentMisc = currentState;
 
         for (int i = 0; i < featureVectors.Count; i++)
@@ -324,30 +328,31 @@ public class MotionMatching : MonoBehaviour
                 //{
                 //    if (TagChecker(featureVectors[i].GetClipName(), currentState, j))
                 //    {
-	               //     currentMisc = j;
-	               //     break;
+                //     currentMisc = j;
+                //     break;
                 //    }
                 //}
-                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
-                float comparison = tempVal;
-                int indexOfHighestValue = 0;
-				
+                //float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
+                //float comparison = tempVal;
+                //int indexOfHighestValue = 0;
+
                 //// If using previous version of misc system (not recommended)
                 //for (int j = 0; j < possibleCandidates.GetLength(1); j++)
                 //{
-                    //if (possibleCandidates[currentMisc, j] != null)
-                    //{
-                    //    if (comparison < values[currentMisc, j])
-                    //    {
-                    //        comparison = values[currentMisc, j];
-                    //        indexOfHighestValue = currentMisc;
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    possibleCandidates[currentMisc, j] = featureVectors[i];
-                    //    values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
-                    //}
+                //    if (possibleCandidates[currentMisc, j] != null)
+                //    {
+                //        if (comparison < values[currentMisc, j])
+                //        {
+                //            comparison = values[currentMisc, j];
+                //            indexOfHighestValue = currentMisc;
+                //        }
+                //    }
+                //    else
+                //    {
+                //        possibleCandidates[currentMisc, j] = featureVectors[i];
+                //        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj,
+                //            transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
+                //    }
                 //}
                 //if (tempVal < comparison)
                 //{
@@ -355,9 +360,34 @@ public class MotionMatching : MonoBehaviour
                 //    values[currentMisc, indexOfHighestValue] = tempVal;
                 //}
 
-                for (int j = 0; j < possibleCandidates.GetLength(1); j++)
+                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
+                float comparison = tempVal;
+                int indexOfHighestValue = 0;
+                for (int j = 0; j < possibleCandidates.Length; j++)
                 {
-	                
+                    if (possibleCandidates[j] != null)
+                    {
+                        if (comparison < values[j])
+                        {
+                            comparison = values[j];
+                            indexOfHighestValue = j;
+
+                            // TODO: Instead, put this as the new value, then shift the array by 1
+                        }
+                    }
+                    else
+                    {
+                        possibleCandidates[j] = featureVectors[i];
+                        values[j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj,
+                            transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
+                        break;
+                    }
+
+                    if (tempVal < comparison && j == possibleCandidates.Length)
+                    {
+                        possibleCandidates[indexOfHighestValue] = featureVectors[i];
+                        values[indexOfHighestValue] = tempVal;
+                    }
                 }
             }
         }
