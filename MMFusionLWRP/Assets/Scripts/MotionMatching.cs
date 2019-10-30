@@ -144,15 +144,9 @@ public class MotionMatching : MonoBehaviour
         if (!_playAnimationMode)
 	    {
 		    if (movement.GetSpeed() <= idleThreshold && currentState != 0)
-		    {
-			    Debug.Log("Now idling...");
 			    currentState = 0;
-		    }
-		    else if (currentState != 1)
-		    {
-			    Debug.Log("Now moving...");
+		    else if (movement.GetSpeed() > idleThreshold && currentState != 1)
 			    currentState = 1;
-		    }
 		    if (!_isMotionMatching /* && movement.GetSpeed() > idleThreshold*/)
 		    {
 			    StopAllCoroutines();
@@ -206,7 +200,7 @@ public class MotionMatching : MonoBehaviour
 
             Gizmos.color = Color.green; // Animation Trajectory
             for (int i = 0; i < featureVectors[currentID].GetTrajectory().GetTrajectoryPoints().Length; i++)
-            {
+            { // TODO: Figure out why anim traj extends when sprinting...
                 // Position
                 Gizmos.DrawWireSphere(invCharSpace.MultiplyPoint3x4(featureVectors[currentID].GetTrajectory().GetTrajectoryPoints()[i].GetPoint()), 0.2f);
 				if (i != 0)
@@ -311,11 +305,13 @@ public class MotionMatching : MonoBehaviour
     List<FeatureVector> TrajectoryMatching(Trajectory movementTraj)
     { // TODO: Instantiate elsewhere, .Clear() instead
         List<FeatureVector> candidates = new List<FeatureVector>();
-        //FeatureVector[,] possibleCandidates = new FeatureVector[movementTags[currentState].Length, candidatesPerMisc];
-        FeatureVector[] possibleCandidates = new FeatureVector[candidatesPerMisc];
-        //float[,] values = new float[movementTags[currentState].Length, candidatesPerMisc];
-        float[] values = new float[candidatesPerMisc];
-        int currentMisc = currentState;
+        List<FeatureVector> possibleCandidates = new List<FeatureVector>();
+        List<float> values = new List<float>();
+        for (int i = 0; i < candidatesPerMisc; i++)
+        {
+            possibleCandidates.Add(null);
+            values.Add(float.MaxValue);
+        }
 
         for (int i = 0; i < featureVectors.Count; i++)
 		{
@@ -324,55 +320,18 @@ public class MotionMatching : MonoBehaviour
             if ((featureVectors[i].GetID() > currentID ||  featureVectors[i].GetID() < currentID - queryRateInFrames) &&
                  featureVectors[i].GetFrame() + queryRateInFrames <  featureVectors[i].GetFrameCountForID())
             {
-                //for (int j = 0; j < movementTags[currentState].Length; j++) // This for loop can be used if looking to consider multiple miscs for the current state during trajectory matching
-                //{
-                //    if (TagChecker(featureVectors[i].GetClipName(), currentState, j))
-                //    {
-                //     currentMisc = j;
-                //     break;
-                //    }
-                //}
-                //float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
-                //float comparison = tempVal;
-                //int indexOfHighestValue = 0;
-
-                //// If using previous version of misc system (not recommended)
-                //for (int j = 0; j < possibleCandidates.GetLength(1); j++)
-                //{
-                //    if (possibleCandidates[currentMisc, j] != null)
-                //    {
-                //        if (comparison < values[currentMisc, j])
-                //        {
-                //            comparison = values[currentMisc, j];
-                //            indexOfHighestValue = currentMisc;
-                //        }
-                //    }
-                //    else
-                //    {
-                //        possibleCandidates[currentMisc, j] = featureVectors[i];
-                //        values[currentMisc, j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj,
-                //            transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
-                //    }
-                //}
-                //if (tempVal < comparison)
-                //{
-                //    possibleCandidates[currentMisc, indexOfHighestValue] = featureVectors[i];
-                //    values[currentMisc, indexOfHighestValue] = tempVal;
-                //}
-
-                float tempVal = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
-                float comparison = tempVal;
-                int indexOfHighestValue = 0;
-                for (int j = 0; j < possibleCandidates.Length; j++)
+                float comparison = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj, transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
+                for (int j = 0; j < candidatesPerMisc; j++)
                 {
                     if (possibleCandidates[j] != null)
                     {
                         if (comparison < values[j])
                         {
-                            comparison = values[j];
-                            indexOfHighestValue = j;
-
-                            // TODO: Instead, put this as the new value, then shift the array by 1
+                            possibleCandidates.Insert(j, featureVectors[i]);
+                            possibleCandidates.RemoveAt(candidatesPerMisc);
+                            values.Insert(j, comparison);
+                            values.RemoveAt(candidatesPerMisc);
+                            break;
                         }
                     }
                     else
@@ -381,12 +340,6 @@ public class MotionMatching : MonoBehaviour
                         values[j] = featureVectors[i].GetTrajectory().CompareTrajectories(movementTraj,
                             transform.worldToLocalMatrix.inverse, weightTrajPoints, weightTrajForwards);
                         break;
-                    }
-
-                    if (tempVal < comparison && j == possibleCandidates.Length)
-                    {
-                        possibleCandidates[indexOfHighestValue] = featureVectors[i];
-                        values[indexOfHighestValue] = tempVal;
                     }
                 }
             }
